@@ -1,0 +1,14 @@
+# Codex-Claude Unison example config
+
+# Hooks require a Codex runtime that supports lifecycle hooks.
+# The bootstrap writes real hook commands with the Python interpreter that ran bootstrap_portable.py.
+[features]
+codex_hooks = true
+
+# Compatibility note:
+# Do not add legacy [agents].max_threads or [agents].max_depth when
+# [features].multi_agent_v2 = true. Modern Codex rejects that combination.
+# The installer removes those legacy keys automatically when multi_agent_v2 is enabled.
+
+# Optional maximum-control mode. Uncomment deliberately.
+# model_instructions_file = "../HYBRID_MODEL_INSTRUCTIONS.md"

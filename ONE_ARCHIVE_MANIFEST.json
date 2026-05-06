@@ -1,0 +1,92 @@
+{
+  "name": "codex-claude-unison",
+  "version": "2026-04-28-v2.3",
+  "one_archive": true,
+  "entrypoints": [
+    "HOW_TO.md",
+    "install.sh",
+    "install.ps1",
+    "install.cmd",
+    ".agents/skills/codex-claude-unison/SKILL.md"
+  ],
+  "canonical_identity": "codex-claude-unison",
+  "legacy_aliases": [
+    "codex-claude-unison",
+    "codex-claude-hybrid",
+    "codex-claude-unison-hooks",
+    "codex-claude-unison-portable",
+    "codex-claude-unison-portable-full"
+  ],
+  "repo_install_paths": [
+    "AGENTS.md",
+    "HOW_TO.md",
+    "HOW_TO.codex-claude-unison.md",
+    "README.md",
+    "README.codex-claude-unison.md",
+    "HYBRID_MODEL_INSTRUCTIONS.md",
+    "HYBRID_MODEL_INSTRUCTIONS.codex-claude-unison.md",
+    "MIGRATION_NOTES.md",
+    "ONE_ARCHIVE_MANIFEST.json",
+    ".agents/skills/codex-claude-unison/",
+    ".codex/agents/unison-mapper.toml",
+    ".codex/agents/unison-reviewer.toml",
+    ".codex/agents/unison-implementer.toml",
+    ".codex/agents/unison-verifier.toml",
+    ".codex/hooks/",
+    ".codex/hooks.json",
+    ".codex/hooks/tests/run_fixtures.py",
+    ".codex/config.toml.example",
+    "docs/context-hygiene.md",
+    "docs/retry-policy.md",
+    "docs/plan-handoff-template.md",
+    "tools/persist_tool_result.py",
+    "tools/context_doctor.py",
+    "tools/verify_bundle.py",
+    "tools/tests/run_tool_fixtures.py",
+    "tools/tests/run_installer_fixtures.py",
+    "install.sh",
+    "install.ps1",
+    "install.cmd"
+  ],
+  "global_install_paths": [
+    "~/.codex/AGENTS.override.md",
+    "~/.codex/agents/unison-*.toml",
+    "~/.codex/hooks/",
+    "~/.codex/hooks.json",
+    "~/.codex/config.toml",
+    "~/.agents/skills/codex-claude-unison/"
+  ],
+  "backup_policy": {
+    "repo": ".codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v2.3/",
+    "global": "~/.codex/backups/YYYYMMDDTHHMMSSZ-pre-v2.3/",
+    "manifest": "backup_manifest.json"
+  },
+  "platform": {
+    "macOS": "supported",
+    "Linux": "supported",
+    "Termux": "supported via Path.home()",
+    "Windows PowerShell": "supported where Codex hooks runtime supports hooks",
+    "Windows cmd": "bootstrap wrapper included; hook runtime support is Codex-version dependent"
+  },
+  "developer_behavior_upgrades": [
+    "disk-backed large tool results",
+    "context doctor",
+    "compaction and post-compaction rehydration contract",
+    "stop-hook loop guard",
+    "typed permission reasoning guidance",
+    "retry taxonomy",
+    "token-budget continuation guidance",
+    "plan handoff",
+    "model capability clarity"
+  ],
+  "verification": [
+    "python3 tools/verify_bundle.py --json",
+    "hook-enabled repo install smoke",
+    "hookless repo install smoke",
+    "replacement migration test",
+    "idempotence test",
+    "dry-run test",
+    "config regression test",
+    "Windows path quoting unit test"
+  ]
+}

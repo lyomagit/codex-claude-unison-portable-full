@@ -1,0 +1,525 @@
+{
+  "summary": {
+    "package_version": "2026-04-17",
+    "generated_at": "2026-04-17T16:50:21Z",
+    "workspace": "/mnt/data",
+    "archive_root": "/mnt/data/codex-claude-one-archive",
+    "source_paths": [
+      "/mnt/data/prompts.ts",
+      "/mnt/data/system.ts",
+      "/mnt/data/systemPromptSections.ts",
+      "/mnt/data/outputStyles.ts",
+      "/mnt/data/files.ts",
+      "/mnt/data/apiLimits.ts",
+      "/mnt/data/github-app.ts",
+      "/mnt/data/xml.ts",
+      "/mnt/data/spinnerVerbs.ts",
+      "/mnt/data/turnCompletionVerbs.ts",
+      "/mnt/data/errorIds.ts",
+      "/mnt/data/betas.ts",
+      "/mnt/data/keys.ts",
+      "/mnt/data/cyberRiskInstruction.ts",
+      "/mnt/data/messages.ts",
+      "/mnt/data/toolLimits.ts",
+      "/mnt/data/tools.ts",
+      "/mnt/data/memdir.ts",
+      "/mnt/data/teamMemPrompts.ts",
+      "/mnt/data/memoryAge.ts",
+      "/mnt/data/paths.ts",
+      "/mnt/data/memoryTypes.ts",
+      "/mnt/data/memoryScan.ts",
+      "/mnt/data/teamMemPaths.ts",
+      "/mnt/data/findRelevantMemories.ts",
+      "/mnt/data/oauth.ts",
+      "/mnt/data/common.ts",
+      "/mnt/data/product.ts"
+    ],
+    "file_count": 28,
+    "port_count": 6,
+    "adapt_count": 9,
+    "drop_count": 12,
+    "review_count": 1,
+    "features": [
+      "Ask before risky actions",
+      "Binary skip discipline",
+      "Closed memory taxonomy",
+      "Explanatory or learning modes",
+      "Hook lifecycle discipline",
+      "Minimal blast radius",
+      "Parallelize only safe independent work",
+      "Path and traversal safety",
+      "Prefer dedicated tools over shell",
+      "Read before edit",
+      "Role-separated multi-agent work",
+      "Security boundary",
+      "Stale memory caution",
+      "Truthful reporting",
+      "Verify before done"
+    ]
+  },
+  "files": [
+    {
+      "path": "/mnt/data/prompts.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 54320,
+      "sha1": "faf91b6eb6e578254713b78ede5c97986f7b992e",
+      "text_read": true,
+      "action": "PORT",
+      "rationale": "Directly portable engineering rule.; Portable change-management discipline.; Portable completion rule.; Portable reporting rule.; Portable risk policy.",
+      "matched_features": [
+        "Read before edit",
+        "Minimal blast radius",
+        "Verify before done",
+        "Truthful reporting",
+        "Ask before risky actions",
+        "Prefer dedicated tools over shell",
+        "Parallelize only safe independent work",
+        "Explanatory or learning modes",
+        "Hook lifecycle discipline",
+        "Role-separated multi-agent work"
+      ],
+      "matched_drops": [
+        "oauth_plumbing",
+        "product_urls",
+        "prompt_cache_internals",
+        "telemetry_ids"
+      ],
+      "notes": [
+        "Prompt and behavior contract source."
+      ]
+    },
+    {
+      "path": "/mnt/data/system.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 3859,
+      "sha1": "7dedf24dc93a0bf9d3d2bb3d81ed6316dbddfbd2",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Only vendor- or runtime-specific patterns detected.",
+      "matched_features": [],
+      "matched_drops": [
+        "oauth_plumbing",
+        "telemetry_ids"
+      ],
+      "notes": [
+        "System prefix and environment guidance source."
+      ]
+    },
+    {
+      "path": "/mnt/data/systemPromptSections.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 1794,
+      "sha1": "d138c86dfa6a8bb8c785b4726bc4ad67f69e8668",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Only vendor- or runtime-specific patterns detected.",
+      "matched_features": [],
+      "matched_drops": [
+        "provider_betas",
+        "prompt_cache_internals"
+      ],
+      "notes": [
+        "Prompt-section caching and dynamic/static split source."
+      ]
+    },
+    {
+      "path": "/mnt/data/outputStyles.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 9886,
+      "sha1": "334567241e19f5c9f5373a8f4b6311c8e742ae8f",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Interaction modes should become optional overlays, not always-on behavior.",
+      "matched_features": [
+        "Explanatory or learning modes"
+      ],
+      "matched_drops": [],
+      "notes": [
+        "Optional interaction-mode source."
+      ]
+    },
+    {
+      "path": "/mnt/data/files.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 2625,
+      "sha1": "dd76d05afbe2bd0356134fcc5b814363891f876a",
+      "text_read": true,
+      "action": "PORT",
+      "rationale": "Portable filesystem safety rule.",
+      "matched_features": [
+        "Path and traversal safety",
+        "Binary skip discipline"
+      ],
+      "matched_drops": [],
+      "notes": [
+        "Binary-skip hygiene source."
+      ]
+    },
+    {
+      "path": "/mnt/data/apiLimits.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 3443,
+      "sha1": "6c4a63ce82cbee6fa895bc8c48b3a1323da7eb1a",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Portable concept, but must be remapped to Codex-native semantics.",
+      "matched_features": [],
+      "matched_drops": [],
+      "notes": [
+        "Media and request-size constraints source."
+      ]
+    },
+    {
+      "path": "/mnt/data/github-app.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 5347,
+      "sha1": "9694eb259efb170c1fa1955784dbe6a2308f52af",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [],
+      "matched_drops": [
+        "product_urls"
+      ],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/xml.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 3325,
+      "sha1": "33233d18f4258227d45c652977d79772522e9d8f",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Portable orchestration pattern; adapt to explicit Codex subagents.; Portable orchestration rule; adapt to Codex concurrency reality.",
+      "matched_features": [
+        "Parallelize only safe independent work",
+        "Role-separated multi-agent work"
+      ],
+      "matched_drops": [],
+      "notes": [
+        "Message or transcript tagging conventions."
+      ]
+    },
+    {
+      "path": "/mnt/data/spinnerVerbs.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 3453,
+      "sha1": "182fc4c693c78f4eb95897e8ef871ac9a90b4f84",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [],
+      "matched_drops": [],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/turnCompletionVerbs.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 269,
+      "sha1": "2f0fcdba82ef83ef862a75965d6d8412926a28fb",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [],
+      "matched_drops": [],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/errorIds.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 476,
+      "sha1": "663599a2fa38a18cd64a27494fbf55de6ed81f16",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [],
+      "matched_drops": [
+        "telemetry_ids"
+      ],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/betas.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 2218,
+      "sha1": "18c6153ce33366038da8c16ad09faaec495a0b08",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [],
+      "matched_drops": [
+        "oauth_plumbing",
+        "provider_betas"
+      ],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/keys.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 444,
+      "sha1": "b22ab59b99519d4fdaa718a5b13595e828ed7c62",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [],
+      "matched_drops": [
+        "telemetry_ids"
+      ],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/cyberRiskInstruction.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 1525,
+      "sha1": "a54502795f2dafcd0a59fca442767c762404c936",
+      "text_read": true,
+      "action": "PORT",
+      "rationale": "Portable safety boundary.",
+      "matched_features": [
+        "Security boundary"
+      ],
+      "matched_drops": [],
+      "notes": [
+        "Security-boundary source."
+      ]
+    },
+    {
+      "path": "/mnt/data/messages.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 49,
+      "sha1": "be17805e3e4fcf8beab977c85a7e101a12502621",
+      "text_read": true,
+      "action": "REVIEW",
+      "rationale": "Needs manual review.",
+      "matched_features": [],
+      "matched_drops": [],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/toolLimits.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 2169,
+      "sha1": "92866b44e4952d9f7085246b7f37078dc2028165",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Portable orchestration rule; adapt to Codex concurrency reality.",
+      "matched_features": [
+        "Parallelize only safe independent work"
+      ],
+      "matched_drops": [
+        "telemetry_ids"
+      ],
+      "notes": [
+        "Tool-result budget source."
+      ]
+    },
+    {
+      "path": "/mnt/data/tools.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 4690,
+      "sha1": "e0c9a535ef644752d4befa51e76eb387fb914ce5",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Portable lifecycle extension pattern, but must respect Codex hook limits.; Portable orchestration pattern; adapt to explicit Codex subagents.",
+      "matched_features": [
+        "Hook lifecycle discipline",
+        "Role-separated multi-agent work"
+      ],
+      "matched_drops": [],
+      "notes": [
+        "Tool availability and agent-surface source."
+      ]
+    },
+    {
+      "path": "/mnt/data/memdir.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 21174,
+      "sha1": "f5a4e89f498795da9cff676aa15d79c69137118f",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Portable lifecycle extension pattern, but must respect Codex hook limits.",
+      "matched_features": [
+        "Hook lifecycle discipline"
+      ],
+      "matched_drops": [
+        "oauth_plumbing",
+        "prompt_cache_internals",
+        "telemetry_ids"
+      ],
+      "notes": [
+        "Memory system contract source."
+      ]
+    },
+    {
+      "path": "/mnt/data/teamMemPrompts.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 5998,
+      "sha1": "687c2cba6ea0f4c2fd97f39f289232760c1b623c",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Portable lifecycle extension pattern, but must respect Codex hook limits.",
+      "matched_features": [
+        "Hook lifecycle discipline"
+      ],
+      "matched_drops": [
+        "oauth_plumbing"
+      ],
+      "notes": [
+        "Shared-vs-private memory scope source."
+      ]
+    },
+    {
+      "path": "/mnt/data/memoryAge.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 1931,
+      "sha1": "18a0a505c241b0061b229a4210ed81936db5625e",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Portable and important when memory-like artifacts exist.",
+      "matched_features": [
+        "Stale memory caution"
+      ],
+      "matched_drops": [],
+      "notes": [
+        "Memory freshness source."
+      ]
+    },
+    {
+      "path": "/mnt/data/paths.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 10668,
+      "sha1": "2b0af2a0c9d58136b506e10f205de20c479e030b",
+      "text_read": true,
+      "action": "PORT",
+      "rationale": "Portable filesystem safety rule.",
+      "matched_features": [
+        "Path and traversal safety",
+        "Hook lifecycle discipline",
+        "Role-separated multi-agent work"
+      ],
+      "matched_drops": [
+        "oauth_plumbing",
+        "telemetry_ids"
+      ],
+      "notes": [
+        "Memory path-resolution and safety source."
+      ]
+    },
+    {
+      "path": "/mnt/data/memoryTypes.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 22866,
+      "sha1": "45225e9c4dfe51080863faec933cc2fe7c896b2e",
+      "text_read": true,
+      "action": "ADAPT",
+      "rationale": "Portable and important when memory-like artifacts exist.; Portable lifecycle extension pattern, but must respect Codex hook limits.; Portable memory design; apply when the repo uses memory-like artifacts.; Portable orchestration pattern; adapt to explicit Codex subagents.",
+      "matched_features": [
+        "Closed memory taxonomy",
+        "Stale memory caution",
+        "Hook lifecycle discipline",
+        "Role-separated multi-agent work"
+      ],
+      "matched_drops": [
+        "oauth_plumbing"
+      ],
+      "notes": [
+        "Closed memory taxonomy source."
+      ]
+    },
+    {
+      "path": "/mnt/data/memoryScan.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 3105,
+      "sha1": "8963352e3dd3ef85e292ceb1daf86a344538af4e",
+      "text_read": true,
+      "action": "PORT",
+      "rationale": "High-signal portable behavior source.",
+      "matched_features": [],
+      "matched_drops": [],
+      "notes": [
+        "Memory indexing and recall source."
+      ]
+    },
+    {
+      "path": "/mnt/data/teamMemPaths.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 11691,
+      "sha1": "c58aa9fec2ce52c3736085246e7c78ddf9e41c14",
+      "text_read": true,
+      "action": "PORT",
+      "rationale": "Portable filesystem safety rule.",
+      "matched_features": [
+        "Path and traversal safety"
+      ],
+      "matched_drops": [
+        "oauth_plumbing",
+        "telemetry_ids"
+      ],
+      "notes": [
+        "Team-memory path-safety source."
+      ]
+    },
+    {
+      "path": "/mnt/data/findRelevantMemories.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 5305,
+      "sha1": "db616533528818989eb9db35b64b92932ee8e47e",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Only vendor- or runtime-specific patterns detected.",
+      "matched_features": [],
+      "matched_drops": [
+        "telemetry_ids"
+      ],
+      "notes": [
+        "Memory recall selection source."
+      ]
+    },
+    {
+      "path": "/mnt/data/oauth.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 8970,
+      "sha1": "1b7fcad79cfa5ea3f172fec4fcf72ce1a0f8e429",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [],
+      "matched_drops": [
+        "oauth_plumbing",
+        "provider_betas",
+        "product_urls"
+      ],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/common.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 1516,
+      "sha1": "2a9216a959f026601d9ae5952eec2497663f14d7",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [
+        "Hook lifecycle discipline"
+      ],
+      "matched_drops": [],
+      "notes": []
+    },
+    {
+      "path": "/mnt/data/product.ts",
+      "source_root": "/mnt/data",
+      "size_bytes": 2563,
+      "sha1": "83c055c0f4c38ac2c5680003a756b6452a5966c6",
+      "text_read": true,
+      "action": "DROP",
+      "rationale": "Vendor- or runtime-specific implementation detail; do not carry forward as universal behavior.",
+      "matched_features": [
+        "Role-separated multi-agent work"
+      ],
+      "matched_drops": [
+        "product_urls"
+      ],
+      "notes": []
+    }
+  ]
+}

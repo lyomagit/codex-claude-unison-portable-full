@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codex-Claude Unison"
+  short_description: "Self-bootstrap and run a Codex-native Claude-style hybrid harness."
+  default_prompt: "Read HOW_TO.md, self-bootstrap this bundle into the current workspace, generate the local profile, then proceed with the task under the hybrid contract."
+policy:
+  allow_implicit_invocation: true
