@@ -14,6 +14,7 @@ PACKAGE_VERSION = "2026-04-28-v2.3"
 MAX_COMMAND_LOG = 32
 MAX_SUMMARY_CHARS = 2000
 MAX_TRANSCRIPT_READ_BYTES = 2_000_000
+MAX_STDIN_EVENT_BYTES = 10_000_000
 
 FAILURE_MESSAGE = "A command in this turn failed. Do not claim success; either fix it or report the failure faithfully."
 
@@ -71,8 +72,26 @@ class ExitCodeEvidence:
     source: str
 
 
+def _read_stdin_limited() -> Tuple[str, bool]:
+    stdin_buffer = getattr(sys.stdin, "buffer", None)
+    if stdin_buffer is not None:
+        raw_bytes = stdin_buffer.read(MAX_STDIN_EVENT_BYTES + 1)
+        if len(raw_bytes) > MAX_STDIN_EVENT_BYTES:
+            return "", True
+        return raw_bytes.decode("utf-8", errors="replace"), False
+    raw = sys.stdin.read(MAX_STDIN_EVENT_BYTES + 1)
+    if len(raw.encode("utf-8", errors="ignore")) > MAX_STDIN_EVENT_BYTES:
+        return "", True
+    return raw, False
+
+
 def read_event() -> Dict[str, Any]:
-    raw = sys.stdin.read()
+    raw, too_large = _read_stdin_limited()
+    if too_large:
+        return {
+            "_unison_error": "stdin_too_large",
+            "_unison_max_stdin_event_bytes": MAX_STDIN_EVENT_BYTES,
+        }
     if not raw.strip():
         return {}
     try:

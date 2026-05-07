@@ -5,7 +5,7 @@ import re
 from common import json_print, read_event, safe_run
 
 DANGEROUS_PATTERNS = [
-    (r"\brm\s+-rf\s+/(?:\s|$)", "Refusing destructive filesystem wipe."),
+    (r"\brm\b(?=[^;&|\n]*\s/)(?=[^;&|\n]*(?:-[^\s;&|\n]*r[^\s;&|\n]*|--recursive\b))(?=[^;&|\n]*(?:-[^\s;&|\n]*f[^\s;&|\n]*|--force\b))", "Refusing recursive forced delete of an absolute path."),
     (r"\bsudo\s+rm\b", "Refusing privileged destructive delete."),
     (r"\bgit\s+reset\s+--hard\b", "Ask before rewriting repository state with git reset --hard."),
     (r"\bgit\s+clean\s+-fdx?\b", "Ask before deleting untracked files with git clean."),
@@ -18,6 +18,19 @@ DANGEROUS_PATTERNS = [
 
 def main() -> int:
     event = read_event()
+    if event.get("_unison_error") == "stdin_too_large":
+        reason = "Refusing oversized hook event."
+        json_print(
+            {
+                "hookSpecificOutput": {
+                    "hookEventName": "PreToolUse",
+                    "permissionDecision": "deny",
+                    "permissionDecisionReason": reason,
+                },
+                "systemMessage": reason,
+            }
+        )
+        return 0
     command = (((event.get("tool_input") or {}).get("command")) or "").strip()
     if not command:
         return 0

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import subprocess
 import sys
@@ -16,6 +17,7 @@ sys.path.insert(0, str(HOOKS_DIR))
 import common  # noqa: E402
 
 POST = HOOKS_DIR / "post_tool_use_guard.py"
+PRE = HOOKS_DIR / "pre_tool_use_guard.py"
 STOP = HOOKS_DIR / "stop_turn_guard.py"
 BOOTSTRAP = HOOKS_DIR.parents[1] / ".agents" / "skills" / "codex-claude-unison" / "scripts" / "bootstrap_portable.py"
 
@@ -54,6 +56,15 @@ def post_event(repo: Path, command: str, response: Any, *, turn_id: str = "turn"
     if transcript_path is not None:
         event["transcript_path"] = str(transcript_path)
     return event
+
+
+def pre_event(repo: Path, command: str) -> Dict[str, Any]:
+    return {
+        "cwd": str(repo),
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": command},
+    }
 
 
 def classify(repo: Path, command: str, response: Any, **kwargs: Any) -> bool:
@@ -134,6 +145,15 @@ def is_block(result: Optional[Dict[str, Any]]) -> bool:
 
 
 class HookFixtureTests(unittest.TestCase):
+    def test_read_event_rejects_oversized_stdin(self) -> None:
+        original_stdin = sys.stdin
+        try:
+            sys.stdin = io.StringIO("x" * 10_000_001)
+            event = common.read_event()
+        finally:
+            sys.stdin = original_stdin
+        self.assertEqual(event.get("_unison_error"), "stdin_too_large")
+
     def test_exit_zero_with_request_failed_stdout_does_not_block(self) -> None:
         with make_repo() as td:
             repo = Path(td)
@@ -226,6 +246,15 @@ class HookFixtureTests(unittest.TestCase):
             repo = Path(td)
             result = run_hook(POST, post_event(repo, "npm test", {"exit_code": 1, "stderr": "failed"}, turn_id="smoke2"))
             self.assertTrue(is_block(result), result)
+
+    def test_pre_hook_blocks_absolute_recursive_rm_variants(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            for command in ("rm -rf /*", "rm -rf /home", "rm -rf --no-preserve-root /"):
+                with self.subTest(command=command):
+                    result = run_hook(PRE, pre_event(repo, command))
+                    output = (result or {}).get("hookSpecificOutput", {})
+                    self.assertEqual(output.get("permissionDecision"), "deny", result)
 
 
     def test_stop_hook_blocks_once_then_allows_to_avoid_death_spiral(self) -> None:

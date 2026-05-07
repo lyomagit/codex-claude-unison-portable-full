@@ -189,6 +189,43 @@ class InstallerFixtureTests(unittest.TestCase):
             report = run_installed_verify(repo)
             self.assertTrue(report["ok"], report)
 
+    def test_merge_agents_file_preserves_user_content_and_replaces_managed_blocks(self) -> None:
+        bootstrap = load_bootstrap()
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            target = root / "AGENTS.md"
+            target.write_text(
+                "# User rules\n"
+                "Keep this line.\n\n"
+                "<!-- codex-claude-hybrid:start -->\n"
+                "old managed block\n"
+                "<!-- codex-claude-hybrid:end -->\n\n"
+                "Middle user note.\n\n"
+                "<!-- codex-claude-unison-portable-full: begin -->\n"
+                "older managed block\n"
+                "<!-- codex-claude-unison-portable-full: end -->\n"
+                "Tail user note.\n",
+                encoding="utf-8",
+            )
+            backup = root / "backup"
+            recorder = bootstrap.ChangeRecorder(
+                dry_run=False,
+                replace_existing=True,
+                backup_root=backup,
+                base_root=root,
+            )
+            summary = bootstrap.merge_agents_file(target, ROOT / "AGENTS.md", "HOW_TO.md", recorder)
+
+            text = target.read_text(encoding="utf-8")
+            self.assertEqual(summary["managed_blocks_removed"], 2)
+            self.assertIn("Keep this line.", text)
+            self.assertIn("Middle user note.", text)
+            self.assertIn("Tail user note.", text)
+            self.assertNotIn("old managed block", text)
+            self.assertNotIn("older managed block", text)
+            self.assertEqual(count_managed_blocks(text), 1)
+            self.assertTrue((backup / "AGENTS.md").exists())
+
     def test_idempotence_no_duplicate_hooks_or_agents_blocks(self) -> None:
         with make_repo() as td:
             repo = Path(td)
