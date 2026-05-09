@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 PACKAGE_NAME = "codex-claude-unison"
-PACKAGE_VERSION = "2026-04-28-v2.3"
+PACKAGE_VERSION = "2026-05-09-v3.1"
 MANAGED_START = "<!-- codex-claude-unison:start -->"
 MANAGED_END = "<!-- codex-claude-unison:end -->"
 
@@ -32,8 +32,9 @@ ROOT_DOCS_TO_COPY = [
     "HOW_TO.md",
     "HYBRID_MODEL_INSTRUCTIONS.md",
     "ONE_ARCHIVE_MANIFEST.json",
-    "HOOKS_V2_AUDIT.md",
+    "HOOKS_V3_AUDIT.md",
     "MIGRATION_NOTES.md",
+    "PRODUCTION_READINESS.md",
 ]
 ROOT_DOC_MANAGED_SUFFIXES = {
     "README.md": "README.codex-claude-unison.md",
@@ -371,7 +372,7 @@ def make_backup_root(default_parent: Path, override: Optional[str], *, dry_run: 
         root = Path(override).expanduser().resolve()
     else:
         stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        root = default_parent / f"{stamp}-pre-v2.3"
+        root = default_parent / f"{stamp}-pre-v3.1"
     if not dry_run:
         candidate = root
         suffix = 1
@@ -649,25 +650,33 @@ def hooks_payload(hooks_dir: Path) -> Dict[str, Any]:
         "hooks": {
             "SessionStart": [{"matcher": "startup|resume|clear", "hooks": [hook("context_hook.py", "Loading hybrid context")]}],
             "UserPromptSubmit": [{"hooks": [hook("context_hook.py", "Applying hybrid context")]}],
-            "PreToolUse": [{"matcher": "^Bash$", "hooks": [hook("pre_tool_use_guard.py", "Checking Bash command")]}],
-            "PostToolUse": [{"matcher": "^Bash$", "hooks": [hook("post_tool_use_guard.py", "Reviewing shell output")]}],
+            "PreToolUse": [{"matcher": "^(Bash|bash|Shell|shell|sh|PowerShell|powershell|pwsh|cmd|terminal|exec|unified_exec)$", "hooks": [hook("pre_tool_use_guard.py", "Checking shell command")]}],
+            "PostToolUse": [{"matcher": "^(Bash|bash|Shell|shell|sh|PowerShell|powershell|pwsh|cmd|terminal|exec|unified_exec)$", "hooks": [hook("post_tool_use_guard.py", "Reviewing shell output")]}],
             "Stop": [{"hooks": [hook("stop_turn_guard.py", "Checking completion claims")]}],
         }
     }
 
 
-def command_mentions_known_unison_hook(command: Any) -> bool:
+def command_mentions_known_unison_hook(command: Any, hooks_dir: Optional[Path] = None) -> bool:
     if not isinstance(command, str):
         return False
     normalized = command.replace("\\", "/").lower()
     if any(alias in normalized for alias in LEGACY_ALIASES):
         return True
-    if "/.codex/hooks/" in normalized and any(name.lower().split(".disabled")[0] in normalized for name in ALL_KNOWN_HOOK_NAMES):
+    hook_names = [name.lower().split(".disabled")[0] for name in ALL_KNOWN_HOOK_NAMES]
+    if hooks_dir is not None:
+        try:
+            hooks_norm = hooks_dir.resolve().as_posix().lower()
+        except Exception:
+            hooks_norm = str(hooks_dir).replace("\\", "/").lower()
+        if hooks_norm in normalized and any(name in normalized for name in hook_names):
+            return True
+    if ("/.codex/hooks/" in normalized or ".codex/hooks/" in normalized) and any(name in normalized for name in hook_names):
         return True
-    return any(name.lower() in normalized for name in ALL_KNOWN_HOOK_NAMES)
+    return False
 
 
-def prune_unison_hook_duplicates(hooks_json: Dict[str, Any]) -> Tuple[Dict[str, Any], int]:
+def prune_unison_hook_duplicates(hooks_json: Dict[str, Any], hooks_dir: Optional[Path] = None) -> Tuple[Dict[str, Any], int]:
     hooks = hooks_json.get("hooks")
     if not isinstance(hooks, dict):
         return hooks_json, 0
@@ -687,7 +696,7 @@ def prune_unison_hook_duplicates(hooks_json: Dict[str, Any]) -> Tuple[Dict[str, 
                 continue
             kept_handlers = []
             for handler in handlers:
-                if isinstance(handler, dict) and command_mentions_known_unison_hook(handler.get("command")):
+                if isinstance(handler, dict) and command_mentions_known_unison_hook(handler.get("command"), hooks_dir):
                     removed += 1
                     continue
                 kept_handlers.append(handler)
@@ -715,7 +724,7 @@ def merge_hooks_json(target_hooks_path: Path, hooks_dir: Path, recorder: ChangeR
             recorder.warnings.append(f"invalid hooks.json replaced after backup: {target_hooks_path}")
     else:
         target_data = {}
-    target_data, removed = prune_unison_hook_duplicates(target_data)
+    target_data, removed = prune_unison_hook_duplicates(target_data, hooks_dir)
     hooks = target_data.setdefault("hooks", {})
     if not isinstance(hooks, dict):
         hooks = {}

@@ -1,6 +1,6 @@
 {
   "name": "codex-claude-unison",
-  "version": "2026-04-28-v2.3",
+  "version": "2026-05-09-v3.1",
   "one_archive": true,
   "entrypoints": [
     "HOW_TO.md",
@@ -26,7 +26,9 @@
     "HYBRID_MODEL_INSTRUCTIONS.md",
     "HYBRID_MODEL_INSTRUCTIONS.codex-claude-unison.md",
     "MIGRATION_NOTES.md",
+    "PRODUCTION_READINESS.md",
     "ONE_ARCHIVE_MANIFEST.json",
+    "HOOKS_V3_AUDIT.md",
     ".agents/skills/codex-claude-unison/",
     ".codex/agents/unison-mapper.toml",
     ".codex/agents/unison-reviewer.toml",
@@ -57,8 +59,8 @@
     "~/.agents/skills/codex-claude-unison/"
   ],
   "backup_policy": {
-    "repo": ".codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v2.3/",
-    "global": "~/.codex/backups/YYYYMMDDTHHMMSSZ-pre-v2.3/",
+    "repo": ".codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v3.1/",
+    "global": "~/.codex/backups/YYYYMMDDTHHMMSSZ-pre-v3.1/",
     "manifest": "backup_manifest.json"
   },
   "platform": {
@@ -87,6 +89,16 @@
     "idempotence test",
     "dry-run test",
     "config regression test",
-    "Windows path quoting unit test"
-  ]
+    "Windows path quoting unit test",
+    "hook fixture suite with v3 false-positive tests",
+    "source archive verify_bundle.py --json"
+  ],
+  "release_archive": "codex-claude-unison-portable-full-20260509-v3.1.zip",
+  "hook_policy_v3": {
+    "pre_tool_use": "shell-aware risk classifier; catastrophic risks deny, risky local repo actions warn",
+    "post_tool_use": "real exit-code evidence only; stdout/stderr words are summary text, not failure evidence",
+    "stop": "one bounded block only for false success while real shell failure remains unresolved",
+    "uninspectable_events": "fail open",
+    "state_schema": "codex-claude-unison.turn-state.v3"
+  }
 }

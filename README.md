@@ -1,4 +1,4 @@
-# Codex-Claude Unison v2.3
+# Codex-Claude Unison v3.1
 
 A complete, installable, cross-platform replacement package for the Codex-Claude Unison behavior/tooling layer.
 
@@ -6,10 +6,10 @@ The package identity is stable: `codex-claude-unison`.
 
 ## Start here
 
-This repository contains the unpacked bundle source and the original release archive:
+This repository contains the unpacked bundle source and a releasable archive payload.
 
 - unpacked source: this repository root;
-- release archive: `codex-claude-unison-portable-full-20260428-v2.3.zip`.
+- release archive name: `codex-claude-unison-portable-full-20260509-v3.1.zip`.
 
 For both a human operator and an AI coding agent, the entrypoint is:
 
@@ -49,6 +49,23 @@ It gives Codex a durable engineering discipline layer:
 - context hygiene helpers;
 - installer backup, replacement, dry-run, and verification tests.
 
+## What changed in v3.1
+
+v3.1 is the production-readiness hardening pass on top of v3.0. It keeps the replacement installer model and makes the hook layer more precise: fewer false positives, broader real-risk coverage, and safer migration behavior.
+
+- PreToolUse now inspects executable shell command substitutions such as `$(...)` and backticks, while still ignoring the same text inside single-quoted search/doc strings.
+- Broad home-root deletes such as `/home/alice` or `C:\Users\Alice` remain hard denials, but scoped project paths such as `/home/alice/project/build` are warning-only so legitimate cleanup is not blocked.
+- Windows/PowerShell destructive forms are covered: `Remove-Item -Recurse -Force`, PowerShell `rm` aliases, and `rmdir /s /q` / `rd /s /q` get the same deny-vs-warn policy as POSIX `rm`.
+- Raw device writes are covered beyond `dd`: shell redirection to `/dev/sd*` / `/dev/nvme*` and `tee` to raw devices are denied.
+- Remote-download-to-interpreter pipelines such as `curl ... | sh` produce a warning instead of a denial, preserving legitimate installs while forcing explicit trust reasoning.
+- Stop-hook honest-failure detection is stricter: “tests failed earlier, now fixed; done” no longer bypasses an unresolved failure.
+- Provider/runtime bypasses no longer trigger on generic `status`/`reason` fields; they require explicit error-like fields.
+- Hook matchers cover common shell tool names beyond `Bash` where the Codex runtime emits them.
+- `hooks.json` pruning is safer: unrelated hooks with similar filenames are preserved unless they are clearly managed Unison hooks.
+- Windows root wrappers now fall back from `py` to `python3`/`python` and quote configured Python paths.
+
+v3.1 also keeps the v3.0 fixes: stdout/stderr words are not failure evidence, expected probe exits are informational, successful verification clears unresolved state, and oversized/malformed hook events fail open.
+
 ## The key behavior
 
 Codex must not pretend a failed check succeeded.
@@ -57,7 +74,7 @@ If a shell command really exits non-zero, the failure remains unresolved until C
 
 ## Long-session developer upgrades
 
-This release keeps the v2.2 developer-behavior features and turns the package into a full replacement installer:
+This release keeps the developer-behavior layer from earlier Unison releases:
 
 - `tools/persist_tool_result.py` stores large command/tool outputs under `.codex-hybrid/tool-results/` and prints a small preview plus the full path.
 - `tools/context_doctor.py` audits context bloat and unresolved guard state without deleting anything.
@@ -79,7 +96,7 @@ The installer detects old managed installs by markers, not only by one exact fol
 Before replacing managed files, it creates a backup such as:
 
 ```text
-.codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v2.3/
+.codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v3.1/
 ```
 
 For global installs, backups go under `~/.codex/backups/` unless `--backup-dir` is supplied. Each backup includes `backup_manifest.json` with original path, backup path, file size, SHA256, and planned action.

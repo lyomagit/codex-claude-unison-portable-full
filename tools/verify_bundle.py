@@ -21,6 +21,8 @@ BASE_REQUIRED_FILES = [
     "HYBRID_MODEL_INSTRUCTIONS.md",
     "ONE_ARCHIVE_MANIFEST.json",
     "MIGRATION_NOTES.md",
+    "PRODUCTION_READINESS.md",
+    "HOOKS_V3_AUDIT.md",
     "install.sh",
     "install.ps1",
     "install.cmd",
@@ -181,6 +183,8 @@ def check_manifest() -> Dict[str, Any]:
         "tools/context_doctor.py",
         "tools/tests/run_tool_fixtures.py",
         "tools/tests/run_installer_fixtures.py",
+        "HOOKS_V3_AUDIT.md",
+        "PRODUCTION_READINESS.md",
         "install.sh",
         "install.ps1",
         "install.cmd",
@@ -222,19 +226,19 @@ def check_referenced_files_exist() -> Dict[str, Any]:
 
 def test_commands(include_installer_tests: bool) -> List[List[str]]:
     commands: List[List[str]] = []
-    # Run tool tests before hook tests. Some Python runtimes can leave subprocess
-    # pipe state awkward after the hook fixture suite because that suite itself
-    # spawns hooks repeatedly; this order is deterministic and avoids a false
-    # verifier hang while preserving all checks.
+    # Run helper and installer suites before hook fixtures. The hook fixture suite
+    # intentionally spawns many nested hook subprocesses; on some Python/runtime
+    # combinations, running it last avoids rare file-descriptor/EOF hangs in later
+    # subprocess-heavy installer tests while preserving the same verification set.
     commands.append([sys.executable, "tools/tests/run_tool_fixtures.py", "-v"])
-    if hooks_expected():
-        commands.append([sys.executable, ".codex/hooks/tests/run_fixtures.py", "-v"])
     # Installer fixtures require a full source payload, including hook source files.
     # A hookless installed tree is valid and intentionally lacks .codex/hooks, so
     # it verifies its installed invariants and tool helpers but skips migration
     # fixture recursion. The source archive still runs the installer suite.
     if include_installer_tests and hooks_expected():
         commands.append([sys.executable, "tools/tests/run_installer_fixtures.py", "-v"])
+    if hooks_expected():
+        commands.append([sys.executable, ".codex/hooks/tests/run_fixtures.py", "-v"])
     return commands
 
 

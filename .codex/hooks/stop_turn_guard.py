@@ -21,6 +21,8 @@ MAX_STRICT_STOP_BLOCKS_PER_TURN = 1
 
 def main() -> int:
     event = read_event()
+    if event.get("_unison_error") in {"stdin_too_large", "invalid_json"}:
+        return 0
     repo_root = repo_from_event(event)
     turn_id = str(event.get("turn_id") or "")
     last_message = (event.get("last_assistant_message") or "").strip()
@@ -35,9 +37,11 @@ def main() -> int:
     state = load_turn_state(repo_root, turn_id)
     if not unresolved_turn_failure(state):
         return 0
-    if assistant_reports_failure(last_message):
+    claims_success = assistant_claims_success(last_message)
+    reports_failure = assistant_reports_failure(last_message)
+    if reports_failure:
         return 0
-    if not assistant_claims_success(last_message):
+    if not claims_success:
         return 0
 
     prior_blocks = int(state.get("stop_block_count") or 0)

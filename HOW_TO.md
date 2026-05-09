@@ -80,6 +80,21 @@ Then continue the latest user request under the installed contract.
 - Use `tools/persist_tool_result.py` for huge outputs and `tools/context_doctor.py` for context bloat.
 - Before compaction, preserve operational state. After compaction, rehydrate from the summary and referenced files instead of following an older ghost objective.
 
+
+## v3.1 hook behavior
+
+When hooks are installed and supported by the active Codex runtime:
+
+- PreToolUse denies only catastrophic or shared-state shell risks. Risky but sometimes legitimate local repo actions produce warnings instead of denying the tool call.
+- The preflight classifier inspects executable shell nesting such as `bash -lc`, `cmd /c`, PowerShell `-Command`, `$(...)`, and backticks, but does not block dangerous-looking text inside safe quoted search/doc strings.
+- POSIX, Windows cmd, and PowerShell destructive delete forms share the same policy: broad system/home/root deletes and `.git` metadata deletion deny; scoped absolute cleanup warns.
+- Raw device writes through `dd`, shell redirection, or `tee` deny. Remote download piped to an interpreter warns.
+- PostToolUse records only real exit-code evidence. Words in stdout/stderr are never command-failure evidence by themselves.
+- Expected probe exits such as grep/rg no-match, `command -v` missing, `test` false, and `git diff --quiet` difference are treated as information.
+- A successful verifier command such as `python3 tools/verify_bundle.py --json` clears unresolved shell-failure state.
+- Stop-hook honest-failure wording is strict: a past failure mention plus a success claim does not count as a plain unresolved-failure report.
+- Oversized or malformed hook events fail open so the hook layer does not break normal tool access when it cannot inspect an event reliably.
+
 ## Verification command
 
 After installation, local Codex should run:

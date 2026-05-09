@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Iterable, List, Optional, Sequence
 
-PACKAGE_VERSION = "2026-04-28-v2.3"
+PACKAGE_VERSION = "2026-05-09-v3.1"
 MAX_READ_BYTES = 200_000
 DEFAULT_MAX_FILES = 250
 SKIP_DIRS = {

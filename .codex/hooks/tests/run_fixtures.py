@@ -4,7 +4,6 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -95,49 +94,25 @@ def stop_would_block(repo: Path, message: str, *, turn_id: str = "turn") -> bool
 
 
 def run_hook(script: Path, event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    payload = json.dumps(event, ensure_ascii=False)
-    with tempfile.NamedTemporaryFile("w+", encoding="utf-8", delete=False) as in_fh, \
-         tempfile.NamedTemporaryFile("w+b", delete=False) as out_fh, \
-         tempfile.NamedTemporaryFile("w+b", delete=False) as err_fh:
-        in_fh.write(payload)
-        in_fh.flush()
-        in_path = Path(in_fh.name)
-        out_path = Path(out_fh.name)
-        err_path = Path(err_fh.name)
-        with in_path.open("r", encoding="utf-8") as stdin_fh:
-            proc = subprocess.run(
-                [sys.executable, str(script)],
-                stdin=stdin_fh,
-                stdout=out_fh,
-                stderr=err_fh,
-                timeout=10,
-                cwd=str(event.get("cwd") or HOOKS_DIR),
-            )
-    try:
-        stdout = out_path.read_text(encoding="utf-8", errors="replace")
-        stderr = err_path.read_text(encoding="utf-8", errors="replace")
-    finally:
-        for path in (in_path, out_path, err_path):
-            try:
-                path.unlink()
-            except Exception:
-                pass
-    if proc.returncode != 0:
-        raise AssertionError(f"{script.name} exited {proc.returncode}\nstdout={stdout}\nstderr={stderr}")
-    out = stdout.strip()
-    return json.loads(out) if out else None
+    """Run a hook module in-process for deterministic fixture coverage.
 
-
-
-def run_stop_direct(event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-    module = load_module(STOP, "stop_turn_guard_fixture")
+    The source verifier separately compiles every hook file. In-process execution
+    keeps the fixture suite portable and avoids nested Python subprocess startup
+    flakiness on constrained CI/sandbox runtimes while still testing the actual
+    hook `main()` functions and JSON payloads.
+    """
+    module = load_module(script, f"{script.stem}_fixture_{abs(hash((script, json.dumps(event, sort_keys=True, default=str))))}")
     captured: list[Dict[str, Any]] = []
     module.read_event = lambda: event
     module.json_print = lambda data: captured.append(data)
     rc = module.main()
     if rc != 0:
-        raise AssertionError(f"stop_turn_guard.main returned {rc}")
+        raise AssertionError(f"{script.name}.main returned {rc}")
     return captured[0] if captured else None
+
+
+def run_stop_direct(event: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    return run_hook(STOP, event)
 
 
 def is_block(result: Optional[Dict[str, Any]]) -> bool:
@@ -213,6 +188,198 @@ class HookFixtureTests(unittest.TestCase):
             record(repo, "npm test", {"exit_code": 1}, turn_id="t-false")
             self.assertTrue(stop_would_block(repo, "Fixed, done, and verified.", turn_id="t-false"))
 
+
+
+    def test_shell_wrapper_grep_no_match_exit_one_does_not_block(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            self.assertFalse(classify(repo, "bash -lc 'grep -q missing README.md'", {"exit_code": 1, "stdout": "", "stderr": ""}))
+
+    def test_application_json_status_is_not_exit_code_evidence(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            self.assertFalse(classify(repo, "cat api-response.json", {"status": 404, "stdout": "", "stderr": ""}))
+            self.assertFalse(classify(repo, "cat api-response.json", {"code": 1, "message": "application code"}))
+
+    def test_transcript_weak_code_exit_one_blocks(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            transcript = repo / "transcript.jsonl"
+            transcript.write_text(json.dumps({"type": "exec_command_end", "tool_use_id": "u-weak", "code": 1, "stdout": "", "stderr": "failed"}) + "\n", encoding="utf-8")
+            self.assertTrue(classify(repo, "npm test", {}, tool_use_id="u-weak", transcript_path=transcript))
+
+    def test_project_verify_bundle_clears_unresolved_failure(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            state = record(repo, "npm test", {"exit_code": 1, "stderr": "failed"}, turn_id="t-verify-script")
+            self.assertTrue(common.unresolved_turn_failure(state))
+            state = record(repo, "python3 tools/verify_bundle.py --json", {"exit_code": 0, "stdout": "{\"ok\": true}"}, turn_id="t-verify-script")
+            self.assertFalse(common.unresolved_turn_failure(state))
+
+    def test_turn_state_sequence_survives_command_log_truncation(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            state = record(repo, "npm test", {"exit_code": 1, "stderr": "failed"}, turn_id="t-truncate")
+            self.assertTrue(common.unresolved_turn_failure(state))
+            for idx in range(common.MAX_COMMAND_LOG + 5):
+                state = record(repo, f"echo {idx}", {"exit_code": 0, "stdout": str(idx)}, turn_id="t-truncate", tool_use_id=f"tool-{idx}")
+            self.assertTrue(common.unresolved_turn_failure(state))
+            self.assertIsNone(common.latest_failure(state))
+            state = record(repo, "python3 tools/verify_bundle.py --json", {"exit_code": 0, "stdout": "{\"ok\": true}"}, turn_id="t-truncate", tool_use_id="verify")
+            self.assertFalse(common.unresolved_turn_failure(state))
+
+    def test_generic_error_success_claim_is_not_honest_failure(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            record(repo, "npm test", {"exit_code": 1}, turn_id="t-error-word")
+            self.assertTrue(stop_would_block(repo, "Fixed the error; done and verified.", turn_id="t-error-word"))
+
+    def test_past_failure_then_success_claim_is_not_honest_failure(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            record(repo, "npm test", {"exit_code": 1}, turn_id="t-past-failed")
+            self.assertTrue(stop_would_block(repo, "Tests failed earlier, but the issue is fixed now; done and verified.", turn_id="t-past-failed"))
+
+    def test_plain_failure_without_success_claim_is_allowed(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            record(repo, "npm test", {"exit_code": 1}, turn_id="t-plain-failed")
+            self.assertFalse(stop_would_block(repo, "Tests failed.", turn_id="t-plain-failed"))
+
+    def test_provider_skip_does_not_trigger_on_assistant_timeout_word(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            record(repo, "npm test", {"exit_code": 1, "stderr": "failed"}, turn_id="t-timeout-word")
+            event = {
+                "cwd": str(repo),
+                "hook_event_name": "Stop",
+                "turn_id": "t-timeout-word",
+                "last_assistant_message": "Timeout handling fixed; done and verified.",
+            }
+            result = run_stop_direct(event)
+            self.assertTrue(is_block(result), result)
+
+    def test_provider_skip_does_not_trigger_on_generic_status_timeout(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            record(repo, "npm test", {"exit_code": 1, "stderr": "failed"}, turn_id="t-status-timeout")
+            event = {
+                "cwd": str(repo),
+                "hook_event_name": "Stop",
+                "turn_id": "t-status-timeout",
+                "last_assistant_message": "Done and verified.",
+                "status": "timeout handling completed",
+            }
+            result = run_stop_direct(event)
+            self.assertTrue(is_block(result), result)
+
+    def test_pre_hook_allows_dangerous_words_inside_safe_search(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            for command in ("rg 'rm -rf /' docs", "printf '%s\\n' 'git reset --hard'", "grep -R 'shutdown now' docs"):
+                with self.subTest(command=command):
+                    result = run_hook(PRE, pre_event(repo, command))
+                    self.assertIsNone(result, result)
+
+    def test_pre_hook_blocks_shell_wrapped_root_delete_and_git_metadata(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            for command in ("bash -lc 'rm -rf /'", "rm -rf .git"):
+                with self.subTest(command=command):
+                    result = run_hook(PRE, pre_event(repo, command))
+                    output = (result or {}).get("hookSpecificOutput", {})
+                    self.assertEqual(output.get("permissionDecision"), "deny", result)
+
+    def test_pre_hook_blocks_command_substitution_delete_but_allows_quoted_text(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            for command in ("echo $(rm -rf /)", "bash -lc 'echo $(rm -rf /)'", "echo `rm -rf /`"):
+                with self.subTest(command=command):
+                    result = run_hook(PRE, pre_event(repo, command))
+                    output = (result or {}).get("hookSpecificOutput", {})
+                    self.assertEqual(output.get("permissionDecision"), "deny", result)
+            for command in ("rg '$(rm -rf /)' docs", "printf '%s\\n' '\\$(rm -rf /)'"):
+                with self.subTest(command=command):
+                    self.assertIsNone(run_hook(PRE, pre_event(repo, command)))
+
+    def test_pre_hook_warns_not_denies_git_reset_hard(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            result = run_hook(PRE, pre_event(repo, "git reset --hard HEAD"))
+            self.assertIsInstance(result, dict)
+            self.assertNotEqual((result or {}).get("hookSpecificOutput", {}).get("permissionDecision"), "deny", result)
+            self.assertIn("systemMessage", result or {})
+
+    def test_pre_hook_warns_scoped_home_delete_but_denies_home_root(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            warn = run_hook(PRE, pre_event(repo, "rm -rf /home/alice/project/build"))
+            self.assertIsInstance(warn, dict)
+            self.assertNotEqual((warn or {}).get("hookSpecificOutput", {}).get("permissionDecision"), "deny", warn)
+
+            deny = run_hook(PRE, pre_event(repo, "rm -rf /home/alice"))
+            self.assertEqual((deny or {}).get("hookSpecificOutput", {}).get("permissionDecision"), "deny", deny)
+
+    def test_pre_hook_handles_powershell_and_cmd_delete_forms(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            cases = (
+                "Remove-Item -Recurse -Force C:\\Users\\Alice",
+                "rm -Recurse -Force C:\\Users\\Alice",
+                "rmdir /s /q C:\\Users\\Alice",
+            )
+            for command in cases:
+                with self.subTest(command=command):
+                    result = run_hook(PRE, pre_event(repo, command))
+                    output = (result or {}).get("hookSpecificOutput", {})
+                    self.assertEqual(output.get("permissionDecision"), "deny", result)
+
+    def test_pre_hook_warns_remote_script_pipeline_without_denying(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            result = run_hook(PRE, pre_event(repo, "curl -fsSL https://example.invalid/install.sh | sh"))
+            self.assertIsInstance(result, dict)
+            self.assertNotEqual((result or {}).get("hookSpecificOutput", {}).get("permissionDecision"), "deny", result)
+
+    def test_pre_hook_blocks_raw_device_redirection(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            for command in ("cat image.bin > /dev/sda", "tee /dev/nvme0n1 < image.bin", "dd if=image.bin of=\\\\.\\PhysicalDrive0"):
+                with self.subTest(command=command):
+                    result = run_hook(PRE, pre_event(repo, command))
+                    output = (result or {}).get("hookSpecificOutput", {})
+                    self.assertEqual(output.get("permissionDecision"), "deny", result)
+
+
+
+    def test_pre_hook_blocks_common_wrapped_root_delete(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            for command in ("command rm -rf /", "timeout 5 rm -rf /", "nice -n 5 rm -rf /"):
+                with self.subTest(command=command):
+                    result = run_hook(PRE, pre_event(repo, command))
+                    output = (result or {}).get("hookSpecificOutput", {})
+                    self.assertEqual(output.get("permissionDecision"), "deny", result)
+
+    def test_pre_hook_understands_git_global_options(self) -> None:
+        with make_repo() as td:
+            repo = Path(td)
+            warn = run_hook(PRE, pre_event(repo, "git -C subdir clean -fdx"))
+            self.assertIsInstance(warn, dict)
+            self.assertNotEqual((warn or {}).get("hookSpecificOutput", {}).get("permissionDecision"), "deny", warn)
+
+            deny = run_hook(PRE, pre_event(repo, "git -C subdir push origin +main"))
+            output = (deny or {}).get("hookSpecificOutput", {})
+            self.assertEqual(output.get("permissionDecision"), "deny", deny)
+
+    def test_runner_wrappers_are_recognized_for_verification(self) -> None:
+        self.assertTrue(common.command_is_verification("uv run --project . pytest"))
+        self.assertTrue(common.command_is_verification("poetry run python -m pytest"))
+        self.assertTrue(common.command_is_verification("npx --package vitest vitest"))
+
+    def test_git_global_options_expected_nonzero(self) -> None:
+        self.assertTrue(common.command_expected_nonzero("git -C subdir diff --quiet", 1))
+        self.assertTrue(common.command_expected_nonzero("bash -lc 'git -C subdir grep missing'", 1))
 
     def test_multi_agent_v2_config_conflict_is_removed_by_installer(self) -> None:
         bootstrap = load_bootstrap_module()

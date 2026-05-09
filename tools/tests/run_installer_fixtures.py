@@ -247,6 +247,33 @@ class InstallerFixtureTests(unittest.TestCase):
                             commands.append(command)
                 self.assertEqual(len(commands), len(set(commands)), event)
 
+    def test_hooks_json_prune_preserves_unrelated_same_filename_hooks(self) -> None:
+        bootstrap = load_bootstrap()
+        with make_repo() as td:
+            repo = Path(td)
+            hooks_dir = repo / ".codex" / "hooks"
+            hooks_dir.mkdir(parents=True)
+            hooks_json = repo / ".codex" / "hooks.json"
+            unrelated_command = "python /opt/company/hooks/context_hook.py"
+            old_managed_command = f"python {hooks_dir / 'post_tool_use_guard.py'}"
+            hooks_json.write_text(
+                json.dumps(
+                    {
+                        "hooks": {
+                            "UserPromptSubmit": [{"hooks": [{"type": "command", "command": unrelated_command}]}],
+                            "PostToolUse": [{"hooks": [{"type": "command", "command": old_managed_command}]}],
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            recorder = bootstrap.ChangeRecorder(dry_run=False, replace_existing=True, backup_root=repo / "backup", base_root=repo)
+            summary = bootstrap.merge_hooks_json(hooks_json, hooks_dir, recorder)
+            text = hooks_json.read_text(encoding="utf-8")
+            self.assertEqual(summary["removed_old_handlers"], 1)
+            self.assertIn(unrelated_command, text)
+            self.assertNotIn(old_managed_command, text)
+
     def test_config_regression_preserves_unrelated_config(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             config = Path(td) / "config.toml"

@@ -5,7 +5,7 @@ This repository contains or has installed the `codex-claude-unison` replacement 
 
 ## Bootstrap contract
 
-If `.codex-hybrid/bootstrap.state.json` is missing, stale, or not `2026-04-28-v2.3`, read `HOW_TO.md` and run the portable bootstrap before non-trivial work. Use `--replace-existing` so old managed Unison/hybrid installs are backed up and replaced safely.
+If `.codex-hybrid/bootstrap.state.json` is missing, stale, or not `2026-05-09-v3.1`, read `HOW_TO.md` and run the portable bootstrap before non-trivial work. Use `--replace-existing` so old managed Unison/hybrid installs are backed up and replaced safely.
 
 ## Core behavior
 
@@ -16,6 +16,7 @@ If `.codex-hybrid/bootstrap.state.json` is missing, stale, or not `2026-04-28-v2
 - Report verified, inferred, unverified, and failed results distinctly.
 - If a shell command really exits non-zero, treat it as unresolved until it is fixed and re-verified or reported plainly.
 - Do not treat scary stdout/stderr words as failure evidence when the exit code is zero or unknown.
+- Treat pre-hook warnings as visible risk guidance, not as command failures. Address the risk or report it; do not claim the warning proves success or failure.
 - Prefer dedicated tools over shell when tool parity exists.
 - Use short, clear updates at meaningful milestones.
 

@@ -192,6 +192,24 @@ On the first turn after compaction, read the summary, continue from the latest r
 
 The shell-failure sentinel blocks false success only for real unresolved non-zero shell exits. It must not infer failure from words in stdout/stderr. The stop hook is intentionally conservative and has a loop guard: it may issue one strict block for a false success claim in a turn, then avoid repeated hard blocks if the runtime/model keeps replaying the same failure. Durable behavior remains: fix and re-verify, or report the failure plainly.
 
+
+### v3.1 hook semantics
+
+When reasoning about hook output, keep these distinctions exact:
+
+- hard denial: catastrophic/system/shared-state risk; the command did not run and the agent must choose a safer path or get explicit user approval where appropriate;
+- warning: risky but sometimes legitimate local action; the command is allowed, but the agent must remain explicit about why it is acceptable;
+- real failure: trusted exit-code evidence from `tool_response` or matching transcript `exec_command_end`;
+- non-failure: scary stdout/stderr words without exit-code evidence, expected probe exit `1`, malformed/oversized hook event, or unsupported hook runtime.
+
+The project verifier command is an explicit verification command:
+
+```bash
+python3 tools/verify_bundle.py --json
+```
+
+If it succeeds after a real failure, unresolved failure state is cleared. If it fails, report that failure plainly.
+
 ### Typed permission reasoning
 
 When asking permission, name both the risk class and the source/provenance when possible:
@@ -229,7 +247,7 @@ For large tasks, save a concrete plan under `.codex-hybrid/plans/` using `docs/p
 
 Keep separate: input context window, max output tokens, usable budget after system/tool overhead, cached tokens, and provider-specific model catalog claims. Verify live runtime/model claims before presenting them as current facts.
 
-## v2.3 replacement installer rules
+## v3.1 replacement installer rules
 
 When this archive is used as a full replacement package, run bootstrap with `--replace-existing` unless the user explicitly asks for dry-run or inspection only.
 

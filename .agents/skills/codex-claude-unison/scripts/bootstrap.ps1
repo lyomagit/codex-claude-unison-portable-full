@@ -82,6 +82,6 @@ $profile = @(
     "- Be curious, owner-like, and disciplined."
 ) -join "`n"
 Set-Content -Path (Join-Path $hybridDir "profile.md") -Value $profile -Encoding UTF8
-$state = @{ package_version = '2026-04-28-v2.3'; mode = 'repo'; platform = 'windows'; hooks_enabled = $false; bootstrap = 'powershell-fallback-no-python' } | ConvertTo-Json -Depth 3
+$state = @{ package_version = '2026-05-09-v3.1'; mode = 'repo'; platform = 'windows'; hooks_enabled = $false; bootstrap = 'powershell-fallback-no-python' } | ConvertTo-Json -Depth 3
 Set-Content -Path (Join-Path $hybridDir "bootstrap.state.json") -Value $state -Encoding UTF8
 Write-Host "Codex-Claude Unison fallback hookless bootstrap applied to $RepoRoot"

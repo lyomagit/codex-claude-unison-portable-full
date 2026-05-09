@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from common import (
     FAILURE_MESSAGE,
+    command_from_event,
     command_is_verification,
+    is_shell_tool_event,
     json_print,
     read_event,
     record_command_result,
@@ -14,9 +16,14 @@ from common import (
 
 def main() -> int:
     event = read_event()
+    if event.get("_unison_error") in {"stdin_too_large", "invalid_json"}:
+        # Unknown/oversized hook events are not reliable failure evidence.
+        return 0
+    if not is_shell_tool_event(event):
+        return 0
     repo_root = repo_from_event(event)
     turn_id = str(event.get("turn_id") or "")
-    command = (((event.get("tool_input") or {}).get("command")) or "").strip()
+    command = command_from_event(event)
     tool_response = event.get("tool_response")
     if not command or not turn_id:
         return 0

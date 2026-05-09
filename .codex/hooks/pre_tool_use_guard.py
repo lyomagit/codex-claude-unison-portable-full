@@ -1,52 +1,58 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import re
-from common import json_print, read_event, safe_run
-
-DANGEROUS_PATTERNS = [
-    (r"\brm\b(?=[^;&|\n]*\s/)(?=[^;&|\n]*(?:-[^\s;&|\n]*r[^\s;&|\n]*|--recursive\b))(?=[^;&|\n]*(?:-[^\s;&|\n]*f[^\s;&|\n]*|--force\b))", "Refusing recursive forced delete of an absolute path."),
-    (r"\bsudo\s+rm\b", "Refusing privileged destructive delete."),
-    (r"\bgit\s+reset\s+--hard\b", "Ask before rewriting repository state with git reset --hard."),
-    (r"\bgit\s+clean\s+-fdx?\b", "Ask before deleting untracked files with git clean."),
-    (r"\bgit\s+push\b.*\s+--force(?:\s|$)", "Ask before force-pushing shared history."),
-    (r"\bmkfs(?:\.[a-z0-9]+)?\b", "Refusing filesystem formatting command."),
-    (r"\bdd\b\s+.*\bof=", "Refusing raw destructive disk write command."),
-    (r"\bshutdown\b|\breboot\b|\bpoweroff\b", "Refusing machine power control command."),
-]
+from common import (
+    classify_command_risks,
+    command_from_event,
+    is_shell_tool_event,
+    json_print,
+    read_event,
+    repo_from_event,
+    safe_run,
+    strongest_risk,
+)
 
 
 def main() -> int:
     event = read_event()
     if event.get("_unison_error") == "stdin_too_large":
-        reason = "Refusing oversized hook event."
+        # Fail open for oversized hook payloads. A guardrail should not break
+        # legitimate large commands/edits when it cannot inspect the event.
+        json_print(
+            {
+                "systemMessage": "Codex-Claude Unison preflight skipped an oversized hook event; no command was denied because the event could not be inspected reliably."
+            }
+        )
+        return 0
+    if event.get("_unison_error") == "invalid_json":
+        return 0
+    if not is_shell_tool_event(event):
+        return 0
+    command = command_from_event(event)
+    if not command:
+        return 0
+
+    risks = classify_command_risks(command, repo_from_event(event))
+    risk = strongest_risk(risks)
+    if risk is None:
+        return 0
+
+    if risk.severity == "deny":
         json_print(
             {
                 "hookSpecificOutput": {
                     "hookEventName": "PreToolUse",
                     "permissionDecision": "deny",
-                    "permissionDecisionReason": reason,
+                    "permissionDecisionReason": risk.reason,
                 },
-                "systemMessage": reason,
+                "systemMessage": risk.reason,
             }
         )
         return 0
-    command = (((event.get("tool_input") or {}).get("command")) or "").strip()
-    if not command:
-        return 0
-    for pattern, reason in DANGEROUS_PATTERNS:
-        if re.search(pattern, command, re.IGNORECASE):
-            json_print(
-                {
-                    "hookSpecificOutput": {
-                        "hookEventName": "PreToolUse",
-                        "permissionDecision": "deny",
-                        "permissionDecisionReason": reason,
-                    },
-                    "systemMessage": reason,
-                }
-            )
-            return 0
+
+    # Warning-only risks keep normal tools usable while preserving a visible
+    # deterministic nudge for risky but sometimes legitimate actions.
+    json_print({"systemMessage": risk.reason})
     return 0
 
 
