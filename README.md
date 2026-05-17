@@ -182,6 +182,10 @@ If you install hookless with `--skip-hooks`, the installed repo verifier reads `
 
 This package is Codex-native and clean-room. It does not add telemetry, GrowthBook, Statsig, plan upsells, engagement loops, or fake “unlimited context” claims. Compaction is treated as lossy. Model/runtime capability claims must be verified before being reported as current facts.
 
+## License
+
+Codex-Claude Unison is released under the MIT License. See `LICENSE`.
+
 ## Project docs
 
 - `HOW_TO.md` — installation and verification entrypoint.
@@ -190,3 +194,4 @@ This package is Codex-native and clean-room. It does not add telemetry, GrowthBo
 - `SECURITY.md` — security boundary and reporting policy.
 - `CONTRIBUTING.md` — contribution rules and verification expectations.
 - `SUPPORT.md` — issue and support guidance.
+- `LICENSE` — MIT License terms.

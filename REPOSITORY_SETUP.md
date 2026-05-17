@@ -91,4 +91,4 @@ GitHub generates social previews automatically when no custom image is set. A cu
 
 ## License
 
-Choose and add an explicit license before marketing this as reusable open-source software. Do not assume a license retroactively.
+The repository uses the MIT License. Keep `LICENSE` in the repository root so GitHub can detect it.
