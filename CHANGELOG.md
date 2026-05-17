@@ -15,6 +15,7 @@ Packaging and public-repository quality release.
 - The verifier now fails if forbidden interpreter/build artifacts are present in the bundle.
 - The verifier now checks that license text is present in either source-archive or installed-target form.
 - Public history wording was softened to avoid unsupported claims while preserving the early practical guardrail story.
+- Shell command tokenization is now host-independent so Windows CI inspects `bash -lc` wrappers consistently with macOS/Linux.
 
 ### Changed
 

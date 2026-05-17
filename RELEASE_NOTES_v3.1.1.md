@@ -8,6 +8,7 @@ Packaging and public-repository polish release.
 - Python bytecode caches are excluded from the bundle.
 - Verifier detects forbidden packaging artifacts.
 - Verifier checks license presence.
+- Shell command tokenization is host-independent for Windows CI parity.
 - GitHub Actions workflow is prepared for current major actions and cross-platform smoke coverage.
 - Public docs avoid unsupported historical overclaims.
 

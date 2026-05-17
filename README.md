@@ -83,11 +83,12 @@ It gives Codex a durable engineering discipline layer:
 
 ## What changed in v3.1.1
 
-v3.1.1 is a packaging and repository-polish release. It does not change the hook runtime policy from v3.1.
+v3.1.1 is a packaging and repository-polish release. It does not change the hook runtime policy intent from v3.1.
 
 - The release archive now includes MIT license text.
 - Python bytecode caches and `__pycache__` directories are excluded from the bundle.
 - The verifier now detects forbidden packaging artifacts and checks for license text.
+- Shell command tokenization is now host-independent so Windows CI inspects `bash -lc` wrappers consistently with macOS/Linux.
 - Public repository maintenance files are included in the source package.
 - GitHub Actions is prepared for current action majors and cross-platform smoke coverage.
 

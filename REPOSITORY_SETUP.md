@@ -68,6 +68,7 @@ Highlights:
 - Python bytecode caches are excluded from the bundle;
 - verifier now detects forbidden packaging artifacts;
 - verifier now checks license presence;
+- shell command tokenization is host-independent for Windows CI parity;
 - GitHub Actions workflow is prepared for current action majors and cross-platform smoke coverage;
 - public docs avoid unsupported historical overclaims.
 

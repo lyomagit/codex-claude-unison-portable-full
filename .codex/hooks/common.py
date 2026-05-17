@@ -502,7 +502,10 @@ def _split_command_segments(command: str) -> List[str]:
 
 def _tokenize(segment: str) -> List[str]:
     try:
-        return shlex.split(segment, posix=(os.name != "nt"))
+        # Hook command payloads are shell strings even when the verifier runs on
+        # Windows. POSIX tokenization keeps bash -lc wrappers inspectable; later
+        # path normalization still handles Windows-style backslashes.
+        return shlex.split(segment, posix=True)
     except Exception:
         return segment.strip().split()
 
