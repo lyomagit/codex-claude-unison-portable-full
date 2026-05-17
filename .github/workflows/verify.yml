@@ -1,0 +1,40 @@
+name: Verify bundle
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Python verifier
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.12']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run bundle verifier
+        run: python3 tools/verify_bundle.py --json
+
+      - name: Run hook fixtures verbosely
+        run: python3 .codex/hooks/tests/run_fixtures.py -v
+
+      - name: Run installer fixtures verbosely
+        run: python3 tools/tests/run_installer_fixtures.py -v
+
+      - name: Run tool fixtures verbosely
+        run: python3 tools/tests/run_tool_fixtures.py -v

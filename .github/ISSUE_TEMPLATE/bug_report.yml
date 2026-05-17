@@ -1,0 +1,64 @@
+name: Bug report
+description: Report an installation, verification, portability, or unexpected behavior issue.
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting an issue. Please keep reports minimal and redacted.
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      description: Example: 2026-05-09-v3.1
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Linux
+        - Termux
+        - Windows PowerShell
+        - Windows cmd
+        - WSL
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: Output of python3 --version or python --version.
+  - type: textarea
+    id: commands
+    attributes:
+      label: Commands run
+      description: Installation or verification commands, with private paths redacted if needed.
+      render: text
+  - type: textarea
+    id: verifier
+    attributes:
+      label: Verifier output
+      description: Output from python3 tools/verify_bundle.py --json when available.
+      render: json
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Do not include secrets, private repository content, or long raw logs.
