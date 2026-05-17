@@ -4,17 +4,16 @@ Codex-Claude Unison is a Codex behavior and tooling layer. It improves agent dis
 
 ## Supported versions
 
-The currently supported public line is:
-
 | Version | Status |
 | --- | --- |
-| 2026-05-09-v3.1 | Supported |
+| 2026-05-17-v3.1.1 | Supported |
+| 2026-05-09-v3.1 | Upgrade recommended for packaging/license hygiene |
 | Earlier v3.x | Best-effort |
 | v2.x and older | Upgrade recommended |
 
 ## Reporting a vulnerability
 
-Please open a GitHub issue if the report can be public without exposing users to copy-paste risk. For sensitive reports, contact the maintainer privately first and avoid including runnable risky command fragments in public issue titles.
+If GitHub private vulnerability reporting is enabled for this repository, use it for sensitive reports. Otherwise, open a redacted GitHub issue and avoid including secrets, private repository content, or copy-paste risky command fragments in the title/body.
 
 A useful report includes:
 
@@ -22,12 +21,12 @@ A useful report includes:
 - operating system and Codex runtime details;
 - whether hooks were enabled or hookless mode was used;
 - exact installer command when relevant;
-- verifier output from `python3 tools/verify_bundle.py --json`;
+- verifier output from `python tools/verify_bundle.py --json` or `python3 tools/verify_bundle.py --json`;
 - minimal reproduction steps, redacted when needed.
 
 ## Security boundaries
 
-This project does not collect telemetry, upload secrets, or make network calls during verification. It should not be treated as a complete security boundary. Treat it as a quality and safety guardrail for agent workflows.
+This project does not collect telemetry, upload secrets, or make network calls during verification. Treat it as a quality and safety guardrail for agent workflows, not as a complete security boundary.
 
 ## Disclosure expectations
 

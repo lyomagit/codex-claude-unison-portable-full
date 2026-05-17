@@ -1,4 +1,4 @@
-# Codex-Claude Unison Hooks v3.1 Audit
+# Codex-Claude Unison Hooks v3.1 / v3.1.1 Audit
 
 ## Purpose
 

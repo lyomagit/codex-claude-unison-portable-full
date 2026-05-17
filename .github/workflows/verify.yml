@@ -12,29 +12,30 @@ permissions:
 
 jobs:
   verify:
-    name: Python verifier
-    runs-on: ubuntu-latest
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.9', '3.12']
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Run bundle verifier
-        run: python3 tools/verify_bundle.py --json
+        run: python tools/verify_bundle.py --json
 
       - name: Run hook fixtures verbosely
-        run: python3 .codex/hooks/tests/run_fixtures.py -v
+        run: python .codex/hooks/tests/run_fixtures.py -v
 
       - name: Run installer fixtures verbosely
-        run: python3 tools/tests/run_installer_fixtures.py -v
+        run: python tools/tests/run_installer_fixtures.py -v
 
       - name: Run tool fixtures verbosely
-        run: python3 tools/tests/run_tool_fixtures.py -v
+        run: python tools/tests/run_tool_fixtures.py -v

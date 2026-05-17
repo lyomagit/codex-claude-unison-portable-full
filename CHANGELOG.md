@@ -2,7 +2,25 @@
 
 All notable changes for Codex-Claude Unison are summarized here.
 
-This project uses a date-based package version format such as `2026-05-09-v3.1`.
+This project uses a date-based package version format such as `2026-05-17-v3.1.1`.
+
+## 2026-05-17-v3.1.1
+
+Packaging and public-repository quality release.
+
+### Fixed
+
+- The release archive now includes the MIT license text.
+- Python bytecode caches and `__pycache__` directories are excluded from the release archive.
+- The verifier now fails if forbidden interpreter/build artifacts are present in the bundle.
+- The verifier now checks that license text is present in either source-archive or installed-target form.
+- Public history wording was softened to avoid unsupported claims while preserving the early practical guardrail story.
+
+### Changed
+
+- GitHub Actions workflow is prepared for current major actions and cross-platform smoke coverage.
+- Repository setup notes are post-release oriented instead of PR-merge oriented.
+- Security reporting guidance no longer references an undefined private contact channel.
 
 ## 2026-05-09-v3.1
 

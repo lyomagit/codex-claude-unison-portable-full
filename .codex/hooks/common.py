@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-PACKAGE_VERSION = "2026-05-09-v3.1"
+PACKAGE_VERSION = "2026-05-17-v3.1.1"
 TURN_STATE_SCHEMA = "codex-claude-unison.turn-state.v3"
 MAX_COMMAND_LOG = 32
 MAX_SUMMARY_CHARS = 2000

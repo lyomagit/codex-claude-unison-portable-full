@@ -1,4 +1,4 @@
-# Codex-Claude Unison v3.1
+# Codex-Claude Unison v3.1.1
 
 [![Verify bundle](https://github.com/lyomagit/codex-claude-unison-portable-full/actions/workflows/verify.yml/badge.svg)](https://github.com/lyomagit/codex-claude-unison-portable-full/actions/workflows/verify.yml)
 
@@ -24,7 +24,7 @@ AI coding agents are useful, but production work needs operational discipline. T
 
 Codex-Claude Unison was built to reduce those failures.
 
-The project began before Codex hooks were officially part of the standard Codex workflow. It has evolved into a practical safety-filter and behavior layer for Codex-style agent work: focused on shell outcomes, verification honesty, destructive-action guardrails, context hygiene, and clean installation.
+The project evolved as a practical safety-filter and behavior layer while Codex-style agent and hook workflows were still actively forming. Its focus is shell outcomes, verification honesty, destructive-action guardrails, context hygiene, and clean installation.
 
 ## What it improves
 
@@ -36,9 +36,114 @@ The project began before Codex hooks were officially part of the standard Codex 
 - **Cross-platform design:** macOS, Linux, Termux, Windows PowerShell, Windows cmd, and hookless mode are supported.
 - **Verifier-first workflow:** `tools/verify_bundle.py --json` checks the package and fixtures.
 
-## Quick start
+## Start here
 
-Clone or download this repository, then read `HOW_TO.md` first.
+This repository contains the unpacked bundle source and a releasable archive payload.
+
+- unpacked source: this repository root;
+- release archive name: `codex-claude-unison-portable-full-20260517-v3.1.1.zip`.
+
+For both a human operator and an AI coding agent, the entrypoint is:
+
+```text
+Read HOW_TO.md first.
+```
+
+`HOW_TO.md` explains the exact bootstrap command, replacement behavior, hookless mode, dry-run mode, and verification step. Do not start by copying individual files by hand unless you are intentionally doing a manual audit.
+
+Minimal deployment flow:
+
+1. Clone or download this repository.
+2. Open `HOW_TO.md`.
+3. Run the installer command from `HOW_TO.md` in the workspace where the behavior layer should be installed.
+4. After bootstrap, read the generated `.codex-hybrid/profile.md`, `.codex-hybrid/mapping.md`, and `.codex-hybrid/inventory.json`.
+5. Run the verification command from `HOW_TO.md` and report any failed check honestly.
+
+If you only have the zip file, extract it first, then follow the same `HOW_TO.md` entrypoint from the extracted directory.
+
+It is designed for one workflow:
+
+```text
+Read HOW_TO.md and self-bootstrap this bundle into the current workspace.
+```
+
+Codex should then run the portable bootstrap, backup any old managed Unison/hybrid install, replace it with this full package, regenerate `.codex-hybrid/profile.md`, `.codex-hybrid/mapping.md`, and `.codex-hybrid/inventory.json`, and continue the real task under the generated project contract.
+
+## What this package does
+
+It gives Codex a durable engineering discipline layer:
+
+- repo `AGENTS.md` behavior rules;
+- the `codex-claude-unison` skill;
+- local profile generation under `.codex-hybrid/`;
+- optional hooks for shell-failure honesty where the Codex runtime supports hooks;
+- custom narrow agent roles;
+- context hygiene helpers;
+- installer backup, replacement, dry-run, and verification tests.
+
+## What changed in v3.1.1
+
+v3.1.1 is a packaging and repository-polish release. It does not change the hook runtime policy from v3.1.
+
+- The release archive now includes MIT license text.
+- Python bytecode caches and `__pycache__` directories are excluded from the bundle.
+- The verifier now detects forbidden packaging artifacts and checks for license text.
+- Public repository maintenance files are included in the source package.
+- GitHub Actions is prepared for current action majors and cross-platform smoke coverage.
+
+## What changed in v3.1
+
+v3.1 is the production-readiness hardening pass on top of v3.0. It keeps the replacement installer model and makes the hook layer more precise: fewer false positives, broader real-risk coverage, and safer migration behavior.
+
+- PreToolUse now inspects executable shell command substitutions such as `$(...)` and backticks, while still ignoring the same text inside single-quoted search/doc strings.
+- Broad home-root deletes such as `/home/alice` or `C:\Users\Alice` remain hard denials, but scoped project paths such as `/home/alice/project/build` are warning-only so legitimate cleanup is not blocked.
+- Windows/PowerShell destructive forms are covered: `Remove-Item -Recurse -Force`, PowerShell `rm` aliases, and `rmdir /s /q` / `rd /s /q` get the same deny-vs-warn policy as POSIX `rm`.
+- Raw device writes are covered beyond `dd`: shell redirection to `/dev/sd*` / `/dev/nvme*` and `tee` to raw devices are denied.
+- Remote-download-to-interpreter pipelines such as `curl ... | sh` produce a warning instead of a denial, preserving legitimate installs while forcing explicit trust reasoning.
+- Stop-hook honest-failure detection is stricter: “tests failed earlier, now fixed; done” no longer bypasses an unresolved failure.
+- Provider/runtime bypasses no longer trigger on generic `status`/`reason` fields; they require explicit error-like fields.
+- Hook matchers cover common shell tool names beyond `Bash` where the Codex runtime emits them.
+- `hooks.json` pruning is safer: unrelated hooks with similar filenames are preserved unless they are clearly managed Unison hooks.
+- Windows root wrappers now fall back from `py` to `python3`/`python` and quote configured Python paths.
+
+v3.1 also keeps the v3.0 fixes: stdout/stderr words are not failure evidence, expected probe exits are informational, successful verification clears unresolved state, and oversized/malformed hook events fail open.
+
+## The key behavior
+
+Codex must not pretend a failed check succeeded.
+
+If a shell command really exits non-zero, the failure remains unresolved until Codex either fixes it and reruns a relevant verification, or reports the failure plainly. The hooks and instructions do **not** treat scary words in stdout/stderr, such as `failed`, `Traceback`, or `Request failed`, as failure evidence by themselves. The source of truth is a real exit code, with transcript fallback by `tool_use_id` when needed.
+
+## Long-session developer upgrades
+
+This release keeps the developer-behavior layer from earlier Unison releases:
+
+- `tools/persist_tool_result.py` stores large command/tool outputs under `.codex-hybrid/tool-results/` and prints a small preview plus the full path.
+- `tools/context_doctor.py` audits context bloat and unresolved guard state without deleting anything.
+- `docs/context-hygiene.md` defines lossy compaction and post-compaction rehydration rules.
+- `docs/retry-policy.md` separates command failures, expected probe non-zero, provider/rate-limit failures, context overflow, and permission denials.
+- `docs/plan-handoff-template.md` gives a file-based handoff for large tasks or optional context clear.
+
+## Replacement behavior
+
+The installer detects old managed installs by markers, not only by one exact folder name. It recognizes:
+
+- `codex-claude-unison`, `codex-claude-hybrid`, `codex-claude-unison-hooks`, `codex-claude-unison-portable`, and `codex-claude-unison-portable-full` skill directories or state markers;
+- old managed `AGENTS.md` blocks;
+- old `HOW_TO.codex-claude-unison.md`, `README.codex-claude-unison.md`, and `HYBRID_MODEL_INSTRUCTIONS.codex-claude-unison.md` docs;
+- old hook files such as `post_tool_use_review.py`, `pre_tool_use_policy.py`, and `stop_enforcer.py`;
+- old `hooks.json` commands pointing to previous Unison/hybrid hook scripts;
+- old `hybrid-*.toml` custom agents when their content identifies them as managed by this package.
+
+Before replacing managed files, it creates a backup such as:
+
+```text
+.codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v3.1.1/
+```
+
+For global installs, backups go under `~/.codex/backups/` unless `--backup-dir` is supplied. Each backup includes `backup_manifest.json` with original path, backup path, file size, SHA256, and planned action.
+
+## Install commands
 
 Unix, macOS, Linux, Termux:
 
@@ -64,83 +169,7 @@ Direct Python entrypoint:
 python3 .agents/skills/codex-claude-unison/scripts/bootstrap_portable.py --mode auto --target "$PWD" --replace-existing --yes --json
 ```
 
-After installation, verify:
-
-```bash
-python3 tools/verify_bundle.py --json
-```
-
-## Start here
-
-This repository contains the unpacked bundle source and a releasable archive payload.
-
-- unpacked source: this repository root;
-- release archive name: `codex-claude-unison-portable-full-20260509-v3.1.zip`.
-
-For both a human operator and an AI coding agent, the entrypoint is:
-
-```text
-Read HOW_TO.md first.
-```
-
-`HOW_TO.md` explains the exact bootstrap command, replacement behavior, hookless mode, dry-run mode, and verification step. Do not start by copying individual files by hand unless you are intentionally doing a manual audit.
-
-Minimal deployment flow:
-
-1. Clone or download this repository.
-2. Open `HOW_TO.md`.
-3. Run the installer command from `HOW_TO.md` in the workspace where the behavior layer should be installed.
-4. After bootstrap, read the generated `.codex-hybrid/profile.md`, `.codex-hybrid/mapping.md`, and `.codex-hybrid/inventory.json`.
-5. Run the verification command from `HOW_TO.md` and report any failed check honestly.
-
-If you only have the zip file, extract it first, then follow the same `HOW_TO.md` entrypoint from the extracted directory.
-
-## What changed in v3.1
-
-v3.1 is the production-readiness hardening pass on top of v3.0. It keeps the replacement installer model and makes the hook layer more precise: fewer false positives, broader real-risk coverage, and safer migration behavior.
-
-- PreToolUse now inspects executable shell command substitutions while still ignoring the same text inside single-quoted search or documentation strings.
-- Broad home-root/system operations remain hard denials, but scoped project cleanup is warning-only so legitimate cleanup is not blocked.
-- Windows and PowerShell destructive forms are covered by the same deny-vs-warn policy as POSIX shell operations.
-- Raw device write patterns are covered beyond one tool family.
-- Remote-download-to-interpreter pipelines produce a warning instead of a denial, preserving legitimate installs while forcing explicit trust reasoning.
-- Stop-hook honest-failure detection is stricter.
-- Provider/runtime bypasses no longer trigger on generic `status` or `reason` fields; they require explicit error-like fields.
-- Hook matchers cover common shell tool names beyond `Bash` where the Codex runtime emits them.
-- `hooks.json` pruning is safer: unrelated hooks with similar filenames are preserved unless they are clearly managed Unison hooks.
-- Windows root wrappers now fall back from `py` to `python3`/`python` and quote configured Python paths.
-
-v3.1 also keeps the v3.0 fixes: stdout/stderr words are not failure evidence, expected probe exits are informational, successful verification clears unresolved state, and oversized/malformed hook events fail open.
-
-## The key behavior
-
-Codex must not pretend a failed check succeeded.
-
-If a shell command really exits non-zero, the failure remains unresolved until Codex either fixes it and reruns a relevant verification, or reports the failure plainly. The hooks and instructions do **not** treat scary words in stdout/stderr, such as `failed`, `Traceback`, or `Request failed`, as failure evidence by themselves. The source of truth is a real exit code, with transcript fallback by `tool_use_id` when needed.
-
-## Long-session developer upgrades
-
-This release keeps the developer-behavior layer from earlier Unison releases:
-
-- `tools/persist_tool_result.py` stores large command/tool outputs under `.codex-hybrid/tool-results/` and prints a small preview plus the full path.
-- `tools/context_doctor.py` audits context bloat and unresolved guard state without deleting anything.
-- `docs/context-hygiene.md` defines lossy compaction and post-compaction rehydration rules.
-- `docs/retry-policy.md` separates command failures, expected probe non-zero, provider/rate-limit failures, context overflow, and permission denials.
-- `docs/plan-handoff-template.md` gives a file-based handoff for large tasks or optional context clear.
-
-## Replacement behavior
-
-The installer detects old managed installs by markers, not only by one exact folder name. It recognizes stable Unison package identifiers, old managed `AGENTS.md` blocks, old root docs, old hook scripts, old hook commands, and old managed custom-agent files.
-
-Before replacing managed files, it creates a backup such as:
-
-```text
-.codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v3.1/
-```
-
-For global installs, backups go under `~/.codex/backups/` unless `--backup-dir` is supplied. Each backup includes `backup_manifest.json` with original path, backup path, file size, SHA256, and planned action.
-
-## Supported flags
+Supported flags:
 
 ```text
 --mode auto|repo|global|both
@@ -184,14 +213,4 @@ This package is Codex-native and clean-room. It does not add telemetry, GrowthBo
 
 ## License
 
-Codex-Claude Unison is released under the MIT License. See `LICENSE`.
-
-## Project docs
-
-- `HOW_TO.md` — installation and verification entrypoint.
-- `PRODUCTION_READINESS.md` — production-readiness notes.
-- `CHANGELOG.md` — version history.
-- `SECURITY.md` — security boundary and reporting policy.
-- `CONTRIBUTING.md` — contribution rules and verification expectations.
-- `SUPPORT.md` — issue and support guidance.
-- `LICENSE` — MIT License terms.
+Codex-Claude Unison is released under the MIT License. See `LICENSE` in the source archive. When installed into another repository, the package license is preserved as `LICENSE.codex-claude-unison` so the host repository's own license is not overwritten.

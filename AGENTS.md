@@ -5,7 +5,7 @@ This repository contains or has installed the `codex-claude-unison` replacement 
 
 ## Bootstrap contract
 
-If `.codex-hybrid/bootstrap.state.json` is missing, stale, or not `2026-05-09-v3.1`, read `HOW_TO.md` and run the portable bootstrap before non-trivial work. Use `--replace-existing` so old managed Unison/hybrid installs are backed up and replaced safely.
+If `.codex-hybrid/bootstrap.state.json` is missing, stale, or not `2026-05-17-v3.1.1`, read `HOW_TO.md` and run the portable bootstrap before non-trivial work. Use `--replace-existing` so old managed Unison/hybrid installs are backed up and replaced safely.
 
 ## Core behavior
 
