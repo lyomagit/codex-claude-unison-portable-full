@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest an improvement that preserves the project contract.
+title: "feature: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please keep feature requests concrete and testable.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What workflow or failure mode should this improve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should change at the file or behavior level?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification idea
+      description: What fixture, installer test, or docs check would prove this works?
+  - type: checkboxes
+    id: contract
+    attributes:
+      label: Contract preservation
+      options:
+        - label: Preserves read-before-edit behavior
+        - label: Preserves verify-before-success behavior
+        - label: Preserves backup-before-replacement behavior
+        - label: Preserves hookless-valid mode
+        - label: Preserves cross-platform install expectations
