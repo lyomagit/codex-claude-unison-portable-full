@@ -1,6 +1,6 @@
 {
   "name": "codex-claude-unison",
-  "version": "2026-05-09-v3.1",
+  "version": "2026-05-17-v3.1.1",
   "one_archive": true,
   "entrypoints": [
     "HOW_TO.md",
@@ -48,7 +48,8 @@
     "tools/tests/run_installer_fixtures.py",
     "install.sh",
     "install.ps1",
-    "install.cmd"
+    "install.cmd",
+    "LICENSE.codex-claude-unison"
   ],
   "global_install_paths": [
     "~/.codex/AGENTS.override.md",
@@ -59,8 +60,8 @@
     "~/.agents/skills/codex-claude-unison/"
   ],
   "backup_policy": {
-    "repo": ".codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v3.1/",
-    "global": "~/.codex/backups/YYYYMMDDTHHMMSSZ-pre-v3.1/",
+    "repo": ".codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v3.1.1/",
+    "global": "~/.codex/backups/YYYYMMDDTHHMMSSZ-pre-v3.1.1/",
     "manifest": "backup_manifest.json"
   },
   "platform": {
@@ -91,9 +92,11 @@
     "config regression test",
     "Windows path quoting unit test",
     "hook fixture suite with v3 false-positive tests",
-    "source archive verify_bundle.py --json"
+    "source archive verify_bundle.py --json",
+    "license presence check",
+    "forbidden artifact check"
   ],
-  "release_archive": "codex-claude-unison-portable-full-20260509-v3.1.zip",
+  "release_archive": "codex-claude-unison-portable-full-20260517-v3.1.1.zip",
   "hook_policy_v3": {
     "pre_tool_use": "shell-aware risk classifier; catastrophic risks deny, risky local repo actions warn",
     "post_tool_use": "real exit-code evidence only; stdout/stderr words are summary text, not failure evidence",

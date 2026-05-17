@@ -2,7 +2,7 @@
 
 Thank you for helping improve Codex-Claude Unison.
 
-This project is a production behavior and tooling layer for Codex. Contributions should preserve the core contract: read before edit, smallest correct change, verify before success, backup before replacement, hookless valid mode, and cross-platform installation.
+This project is a production behavior and tooling layer for Codex. Contributions should preserve the core contract: read before edit, smallest correct change, verify before success, backup before replacement, hookless-valid mode, and cross-platform installation.
 
 ## Contribution priorities
 

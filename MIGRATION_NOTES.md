@@ -1,4 +1,4 @@
-# Migration notes for Codex-Claude Unison v3.1
+# Migration notes for Codex-Claude Unison v3.1.1
 
 ## Summary
 
@@ -21,13 +21,13 @@ Old names such as `codex-claude-hybrid`, `codex-claude-unison-hooks`, `codex-cla
 When `--replace-existing` is used, the installer backs up managed files before overwriting or removing them. Repo backups go to:
 
 ```text
-.codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v3.1/
+.codex-hybrid/backups/YYYYMMDDTHHMMSSZ-pre-v3.1.1/
 ```
 
 Global backups go to:
 
 ```text
-~/.codex/backups/YYYYMMDDTHHMMSSZ-pre-v3.1/
+~/.codex/backups/YYYYMMDDTHHMMSSZ-pre-v3.1.1/
 ```
 
 Every backup contains `backup_manifest.json` with original path, backup path, file size, SHA256, whether the item was a directory, and the planned action.

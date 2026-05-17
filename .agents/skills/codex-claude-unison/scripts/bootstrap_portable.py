@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 PACKAGE_NAME = "codex-claude-unison"
-PACKAGE_VERSION = "2026-05-09-v3.1"
+PACKAGE_VERSION = "2026-05-17-v3.1.1"
 MANAGED_START = "<!-- codex-claude-unison:start -->"
 MANAGED_END = "<!-- codex-claude-unison:end -->"
 
@@ -35,6 +35,7 @@ ROOT_DOCS_TO_COPY = [
     "HOOKS_V3_AUDIT.md",
     "MIGRATION_NOTES.md",
     "PRODUCTION_READINESS.md",
+    "LICENSE.codex-claude-unison",
 ]
 ROOT_DOC_MANAGED_SUFFIXES = {
     "README.md": "README.codex-claude-unison.md",
@@ -372,7 +373,7 @@ def make_backup_root(default_parent: Path, override: Optional[str], *, dry_run: 
         root = Path(override).expanduser().resolve()
     else:
         stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        root = default_parent / f"{stamp}-pre-v3.1"
+        root = default_parent / f"{stamp}-pre-v3.1.1"
     if not dry_run:
         candidate = root
         suffix = 1

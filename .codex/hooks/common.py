@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-PACKAGE_VERSION = "2026-05-09-v3.1"
+PACKAGE_VERSION = "2026-05-17-v3.1.1"
 TURN_STATE_SCHEMA = "codex-claude-unison.turn-state.v3"
 MAX_COMMAND_LOG = 32
 MAX_SUMMARY_CHARS = 2000
@@ -502,7 +502,10 @@ def _split_command_segments(command: str) -> List[str]:
 
 def _tokenize(segment: str) -> List[str]:
     try:
-        return shlex.split(segment, posix=(os.name != "nt"))
+        # Hook command payloads are shell strings even when the verifier runs on
+        # Windows. POSIX tokenization keeps bash -lc wrappers inspectable; later
+        # path normalization still handles Windows-style backslashes.
+        return shlex.split(segment, posix=True)
     except Exception:
         return segment.strip().split()
 

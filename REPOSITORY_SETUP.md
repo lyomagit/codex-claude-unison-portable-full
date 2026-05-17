@@ -1,19 +1,27 @@
 # Repository setup checklist
 
-Use this checklist after merging the presentation PR.
+Use this checklist to keep the public repository aligned with the current release.
+
+## Current public state
+
+- Description should be set.
+- Website should point to the latest release page.
+- Topics should be set.
+- Release assets should include the bundle zip and matching `.sha256`.
+- GitHub Packages are not required for this project; release assets are the correct distribution mechanism.
 
 ## About sidebar
 
-Set the repository description to:
+Repository description:
 
 ```text
 Production-ready behavior, hooks, and verification layer for OpenAI Codex.
 ```
 
-Set the website field to the repository URL or to the latest release page after publishing the release:
+Website:
 
 ```text
-https://github.com/lyomagit/codex-claude-unison-portable-full
+https://github.com/lyomagit/codex-claude-unison-portable-full/releases/tag/v3.1.1
 ```
 
 Suggested topics:
@@ -37,37 +45,36 @@ powershell
 
 ## Release
 
-Create a GitHub release after the CI workflow passes.
-
 Suggested tag:
 
 ```text
-v3.1
+v3.1.1
 ```
 
 Suggested release title:
 
 ```text
-Codex-Claude Unison v3.1 production hardening
+Codex-Claude Unison v3.1.1 packaging and repository polish
 ```
 
 Suggested release notes:
 
 ```markdown
-Codex-Claude Unison v3.1 is a production-readiness hardening release for the Codex behavior, hooks, and verification layer.
+Codex-Claude Unison v3.1.1 is a packaging and public-repository polish release for the Codex behavior, hooks, and verification layer.
 
 Highlights:
 
-- fewer false positives in hook policy;
-- stronger coverage for real risk patterns;
-- clearer failure-honesty behavior;
-- safer backup-first replacement behavior;
-- cross-platform installer support for macOS, Linux, Termux, Windows PowerShell, and Windows cmd;
-- verifier-first workflow through `python3 tools/verify_bundle.py --json`.
+- release archive now includes MIT license text;
+- Python bytecode caches are excluded from the bundle;
+- verifier now detects forbidden packaging artifacts;
+- verifier now checks license presence;
+- shell command tokenization is host-independent for Windows CI parity;
+- GitHub Actions workflow is prepared for current action majors and cross-platform smoke coverage;
+- public docs avoid unsupported historical overclaims.
 
 Archive:
 
-- `codex-claude-unison-portable-full-20260509-v3.1.zip`
+- `codex-claude-unison-portable-full-20260517-v3.1.1.zip`
 
 Verification:
 
@@ -82,13 +89,9 @@ Native Windows Codex hook runtime should still be verified on a Windows host bef
 
 Attach:
 
-- `codex-claude-unison-portable-full-20260509-v3.1.zip`
-- the matching `.sha256` file if available.
-
-## Social preview
-
-GitHub generates social previews automatically when no custom image is set. A custom image can be added later in repository settings.
+- `codex-claude-unison-portable-full-20260517-v3.1.1.zip`
+- `codex-claude-unison-portable-full-20260517-v3.1.1.zip.sha256`
 
 ## License
 
-The repository uses the MIT License. Keep `LICENSE` in the repository root so GitHub can detect it.
+The repository uses the MIT License. Keep `LICENSE` in the repository root so GitHub can detect it. Keep `LICENSE.codex-claude-unison` in the bundle/install payload so installations into other repositories do not overwrite a host repository's own license.

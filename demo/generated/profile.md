@@ -1,7 +1,7 @@
 # Codex-Claude Unison profile example
 
 Generated: example
-Package version: 2026-05-09-v3.1
+Package version: 2026-05-17-v3.1.1
 Workspace: `<workspace>`
 Archive root: `<archive-root>`
 

@@ -90,6 +90,7 @@ def hooks_expected() -> bool:
 
 def run(cmd: List[str], *, env: Dict[str, str] | None = None, timeout: int = 120) -> Dict[str, Any]:
     merged_env = os.environ.copy()
+    merged_env.setdefault("PYTHONDONTWRITEBYTECODE", "1")
     if env:
         merged_env.update(env)
     # Use temporary files instead of PIPEs. Some hook fixtures spawn nested
@@ -153,11 +154,24 @@ def check_py_compile() -> Dict[str, Any]:
             "missing": missing,
             "skipped_hook_compile": skipped,
         }
-    result = run([sys.executable, "-m", "py_compile", *files], timeout=180)
-    result["missing"] = []
-    result["skipped_hook_compile"] = skipped
-    return result
-
+    errors: List[Dict[str, str]] = []
+    for rel in files:
+        path = ROOT / rel
+        try:
+            source = path.read_text(encoding="utf-8")
+            compile(source, str(path), "exec")
+        except Exception as exc:
+            errors.append({"path": rel, "error": f"{type(exc).__name__}: {exc}"})
+    return {
+        "cmd": [sys.executable, "<compile-without-bytecode>", *files],
+        "returncode": 0 if not errors else 1,
+        "stdout": "",
+        "stderr": "",
+        "ok": not errors,
+        "missing": [],
+        "errors": errors,
+        "skipped_hook_compile": skipped,
+    }
 
 def check_no_legacy_agent_defaults() -> Dict[str, Any]:
     offenders: List[str] = []
@@ -185,6 +199,7 @@ def check_manifest() -> Dict[str, Any]:
         "tools/tests/run_installer_fixtures.py",
         "HOOKS_V3_AUDIT.md",
         "PRODUCTION_READINESS.md",
+        "LICENSE.codex-claude-unison",
         "install.sh",
         "install.ps1",
         "install.cmd",
@@ -192,6 +207,29 @@ def check_manifest() -> Dict[str, Any]:
     serialized = json.dumps(data, ensure_ascii=False)
     missing = [item for item in expected if item not in serialized]
     return {"ok": not missing and data.get("name") == "codex-claude-unison", "missing": missing, "version": data.get("version")}
+
+
+FORBIDDEN_ARTIFACT_NAMES = {"__pycache__", ".DS_Store", "Thumbs.db"}
+FORBIDDEN_ARTIFACT_SUFFIXES = (".pyc", ".pyo")
+
+
+def check_license_present() -> Dict[str, Any]:
+    candidates = ["LICENSE", "LICENSE.md", "LICENSE.codex-claude-unison"]
+    present = [rel for rel in candidates if (ROOT / rel).is_file()]
+    return {"ok": bool(present), "present": present, "expected_one_of": candidates}
+
+
+def check_forbidden_artifacts() -> Dict[str, Any]:
+    offenders: List[str] = []
+    ignored_roots = {".git", ".codex-hybrid"}
+    for path in ROOT.rglob("*"):
+        rel = path.relative_to(ROOT).as_posix()
+        parts = set(path.relative_to(ROOT).parts)
+        if parts & ignored_roots:
+            continue
+        if path.name in FORBIDDEN_ARTIFACT_NAMES or path.suffix in FORBIDDEN_ARTIFACT_SUFFIXES:
+            offenders.append(rel)
+    return {"ok": not offenders, "offenders": sorted(offenders)[:100]}
 
 
 GENERATED_REFERENCE_PREFIXES = (
@@ -249,6 +287,8 @@ def verify(include_installer_tests: bool) -> Dict[str, Any]:
     no_legacy = check_no_legacy_agent_defaults()
     manifest = check_manifest()
     refs = check_referenced_files_exist()
+    license_present = check_license_present()
+    forbidden_artifacts = check_forbidden_artifacts()
     checks = {
         "required_files": required,
         "py_compile": compile_result,
@@ -256,8 +296,10 @@ def verify(include_installer_tests: bool) -> Dict[str, Any]:
         "multi_agent_v2_legacy_defaults": no_legacy,
         "manifest": manifest,
         "referenced_files_exist": refs,
+        "license_present": license_present,
+        "forbidden_artifacts": forbidden_artifacts,
     }
-    ok = required["ok"] and compile_result.get("ok") and all(t["ok"] for t in tests) and no_legacy["ok"] and manifest["ok"] and refs["ok"]
+    ok = required["ok"] and compile_result.get("ok") and all(t["ok"] for t in tests) and no_legacy["ok"] and manifest["ok"] and refs["ok"] and license_present["ok"] and forbidden_artifacts["ok"]
     return {"ok": bool(ok), "root": str(ROOT), "hooks_expected": hooks_expected(), "checks": checks}
 
 
